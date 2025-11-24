@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 def data_loader(file_path):
 
 
-    df = pd.read_csv(file_path, comment='@', header=None)
+    df = pd.read_csv(file_path, comment='@', header=None) # 省略@开头的注释
     # 假设 df 是你的 DataFrame，最后一列是标签
     # 分离特征和标签
     pd.set_option('future.no_silent_downcasting', True)
