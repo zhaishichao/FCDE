@@ -24,7 +24,7 @@ def protectedDiv(left, right):
 
 
 # 对数据进行采样并计算采样样本的中心点
-def sample_and_center(x):
+def sample_and_center(x, threshold=None):
     """
     对数据进行采样并计算采样样本的中心点
 
@@ -40,6 +40,8 @@ def sample_and_center(x):
 
     # 生成随机采样数量n，范围在(total_samples/2, total_samples)之间
     n = np.random.randint(total_samples // 2 + 1, total_samples)
+    if threshold is not None:
+        n = threshold
 
     # 从原始数据中随机采样n个样本
     indices = np.random.choice(total_samples, size=n, replace=False)
@@ -175,8 +177,8 @@ class DSSMOTE_P:
         self.total_syn = None
         self.parameter = evol_parameter
         self.data = self.preprocess_data()
-        self.maj_center = sample_and_center(self.data['maj_x'])
-        self.min_center = sample_and_center(self.data['min_x'])
+        self.maj_center = sample_and_center(self.data['maj_x'], 2)
+        self.min_center = sample_and_center(self.data['min_x'], 2)
         self.pset, self.toolbox = self.init_toolbox()
 
     ####################**********数据预处理**********####################
@@ -289,8 +291,8 @@ class DSSMOTE_P:
     def evolutionary(self):
 
         # 更新一下多数类和少数类的中心
-        self.maj_center = sample_and_center(self.data['maj_x'])
-        self.min_center = sample_and_center(self.data['min_x'])
+        self.maj_center = sample_and_center(self.data['maj_x'], 2)
+        self.min_center = sample_and_center(self.data['min_x'], 2)
 
         # 记录一下迭代信息
         stats = tools.Statistics(key=lambda ind: ind.fitness.values)
@@ -345,13 +347,13 @@ class DSSMOTE_P:
 
         pareto_fronts = tools.sortNondominated(population, len(population), first_front_only=True)
         inds_syn = pareto_fronts[0]
-        if len(inds_syn) < 20:
+        if len(inds_syn) < 5:
             feasible_pop, infeasible_pop = self.get_feasible_infeasible(population)  # 得到可行个体与不可行个体
-            if len(feasible_pop) >= 20:
-                inds_syn = self.toolbox.select(feasible_pop, 20)
+            if len(feasible_pop) >= 5:
+                inds_syn = self.toolbox.select(feasible_pop, 5)
             else:
                 inds_syn = feasible_pop + infeasible_pop[
-                                          :20 - len(feasible_pop)]
+                                          :5 - len(feasible_pop)]
 
         synthesis_instances = []
         for ind in inds_syn:
