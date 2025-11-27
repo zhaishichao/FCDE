@@ -122,15 +122,7 @@ def minority_class_proportion(x: Union[List, np.ndarray],
     minority_count = k_nearest_labels.count(minority_class)
     proportion = minority_count / k
 
-    feasible = False
-    if distances[0][0] > 0:
-        feasible = True
-
-    # print(f"前{k}个最近邻的标签: {k_nearest_labels}")
-    # print(f"少数类出现次数: {minority_count}")
-    # print(f"少数类比例: {proportion:.3f}")
-
-    return proportion, feasible, distances[0][0]
+    return proportion, distances[0][0]
 
 
 def cosine_angle(a, b):
@@ -174,16 +166,44 @@ def selTournamentNDCD(individuals, k, tournsize):
     return chosen
 
 
+def calculate_statistics_inndividuals(individuals):
+    """
+    计算individuals列表中各个属性的最大值
+
+    参数:
+    individuals -- Individual对象列表
+
+    返回:
+    tuple -- (max_a, max_b, max_c, max_d)
+    """
+    if not individuals:
+        return None, None, None, None
+
+    max_minimum_distance = max(-ind.minimum_distance for ind in individuals)
+    if max_minimum_distance == 0:
+        max_minimum_distance = 1
+    max_maj_min_distance = max(-ind.fitness.values[0] for ind in individuals)
+    max_min_center_distance = max(ind.min_center_distance for ind in individuals)
+    max_cosine_angle = max(ind.cosine_angle - 90 for ind in individuals)
+
+    # 以字典的形式返回
+    return {'minimum_distance': max_minimum_distance,
+            'maj_min_distance': max_maj_min_distance,
+            'min_center_distance': max_min_center_distance,
+            'cosine_angle': max_cosine_angle}
+
+
 class DSSMOTE_P_A:
     def __init__(self, X=None, y=None, evol_parameter=None):
         self.X = X
         self.y = y
-        self.k = None
         self.total_syn = None
         self.parameter = evol_parameter
         self.data = self.preprocess_data()
         self.maj_center, self.maj_samples = sample_and_center(self.data['maj_x'])
         self.min_center, self.min_samples = sample_and_center(self.data['min_x'])
+        # 计算少数类中的平均最小距离
+        self.mean_min_distance = calculate_k_min_distances_mean(self.min_samples, k=2)
         self.pset, self.toolbox = self.init_toolbox()
 
     ####################**********数据预处理**********####################
@@ -209,7 +229,6 @@ class DSSMOTE_P_A:
         min_y = self.y[self.y == minority_class]
 
         self.total_syn = len(maj_y) - len(min_y)
-        self.k = int(len(min_y) / 1)
 
         return {
             'maj_x': maj_x,
@@ -232,39 +251,45 @@ class DSSMOTE_P_A:
                 # 计算当前实例与多数类和少数类中心的欧氏距离
                 maj_dis = np.linalg.norm(self.maj_center - new_instance)
                 min_dis = np.linalg.norm(self.min_center - new_instance)
-                # 获取少数类的比例
-                proportion, feasible, cv = minority_class_proportion(self.X, self.y, new_instance, self.k)
                 # 评估新实例与多数类和少数类的距离
                 maj_min_dis = maj_dis - min_dis
+                # 计算少数类的比例
+                proportion, minimum_distance = minority_class_proportion(self.X, self.y, new_instance,
+                                                                         len(self.data['min_x']))
                 individual.fitness.values = (maj_min_dis, proportion)
-                individual.feasible = feasible
-                # maj_center - min_center表示一条从少数类中心到多数类中心的向量
-                individual.cosine_angle = cosine_angle(self.maj_center - self.min_center, new_instance)
-                individual.fitness.cv = cv
+                individual.minimum_distance = minimum_distance
 
-    def get_feasible_infeasible(self, pop):
+                # 计算角度 maj_center - min_center表示一条从少数类中心到多数类中心的向量
+                individual.cosine_angle = cosine_angle(self.maj_center - self.min_center, new_instance)
+
+                # 计算平均最小距离
+                dis = np.linalg.norm(self.min_center - new_instance)
+                individual.min_center_distance = dis - self.mean_min_distance
+
+    # 计算约束违反程度 cv
+    def cv(self, individual, constraint_thresholds):
+        difference = []
+        # difference.append(max(0,  -individual.minimum_distance / constraint_thresholds['minimum_distance']))
+        difference.append(max(0, -individual.fitness.values[0] / constraint_thresholds['maj_min_distance']))
+        difference.append(max(0, individual.cosine_angle-90 / constraint_thresholds['cosine_angle']))
+        difference.append(max(0, individual.min_center_distance / constraint_thresholds['min_center_distance']))
+        cv = sum(difference)  # 求0和cv中的最小值之和，cv=0，表示是一个可行个体
+        individual.fitness.cv = cv  # 将cv值保存在个体中
+
+    def get_feasible_infeasible(self, pop,constraint_thresholds):
         '''
         :param pop: 种群
         :param constraints: 约束阈值
         :return: 可行解和不可行解
         '''
-        mean_min_distance = calculate_k_min_distances_mean(self.min_samples, k=2)
-        feasible_inds = []
-        infeasible_inds = []
-        for ind in pop:
-            func = self.toolbox.compile(expr=ind)
-            new_instance = func(*self.data['min_x'])
-            # 计算新实例和少数类中心的欧氏距离
-            dis = np.linalg.norm(self.min_center - new_instance)
-            print("ind：", "目标1：", ind.fitness.values[0], "角度：", ind.cosine_angle, "dis和mean_dis：", dis,
-                  mean_min_distance)
-            if ind.feasible and ind.cosine_angle < 90 and ind.fitness.values[
-                0] >= 0 and dis <= mean_min_distance:  # 满足约束条件的个体
-                feasible_inds.append(ind)
-            else:  # 不满足约束条件的个体
-                infeasible_inds.append(ind)
-        infeasible_inds = sorted(infeasible_inds, key=attrgetter("fitness.cv"), reverse=True)  # 对不可行个体按cv值降序排序
-        return feasible_inds, infeasible_inds
+        index = []
+        for i in range(len(pop)):
+            if self.cv(pop[i], constraint_thresholds) != 0:  # 判断个体适应度是否都满足约束条件
+                index.append(i)  # 将不符合约束条件的个体的索引添加到index中
+        feasible_pop = [ind for j, ind in enumerate(pop) if j not in index]  # 可行个体
+        infeasible_pop = [ind for j, ind in enumerate(pop) if j in index]  # 不可行个体
+        infeasible_pop = sorted(infeasible_pop, key=attrgetter("fitness.cv"), reverse=True)  # 对不可行个体按cv值降序排序
+        return feasible_pop, infeasible_pop
 
     ####################**********GP进化合成实例**********####################
     # 5. 初始化toolbox
@@ -280,7 +305,8 @@ class DSSMOTE_P_A:
 
         # 创建适应度和GP个体
         creator.create("FitnessMulti", base.Fitness, weights=(1.0, 1.0))
-        creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMulti, feasible=None, cosine_angle=None)
+        creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMulti, minimum_distance=None,
+                       cosine_angle=None, min_center_distance=None)
 
         # 初始化toolbox
         toolbox = base.Toolbox()
@@ -307,6 +333,8 @@ class DSSMOTE_P_A:
         # 更新一下多数类和少数类的中心
         self.maj_center, self.maj_samples = sample_and_center(self.data['maj_x'])
         self.min_center, self.min_samples = sample_and_center(self.data['min_x'])
+        # 计算少数类中的平均最小距离
+        self.mean_min_distance = calculate_k_min_distances_mean(self.min_samples, k=2)
 
         # 记录一下迭代信息
         stats = tools.Statistics(key=lambda ind: ind.fitness.values)
@@ -320,6 +348,10 @@ class DSSMOTE_P_A:
         # 初始化种群
         population = self.toolbox.population(n=self.parameter.POPSIZE)
         self.toolbox.evaluate(population)  # 评估初始种群
+
+        # 计算个体的统计信息
+        constraint_thresholds = calculate_statistics_inndividuals(population)
+
         population = self.toolbox.select(population, self.parameter.POPSIZE)
 
         # 进化搜索
