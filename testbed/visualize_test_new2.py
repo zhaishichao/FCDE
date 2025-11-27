@@ -5,9 +5,9 @@ import warnings
 warnings.filterwarnings("ignore")  # 忽略警告
 
 file_path = '../datasets/dat/'
-save_path = './tsne_results_1127/'
+save_path = './tsne_results_1127-1/'
 # datasetnames = ['iris0', 'ecoli1', 'glass0', 'glass1', 'haberman', 'pima', 'segment0', 'vowel0', 'wisconsin', 'yeast1']
-datasetnames = ['wisconsin']
+datasetnames = ['iris0']
 if __name__ == '__main__':
     for datasetname in datasetnames:
         X, y = data_loader(file_path + datasetname + '.dat')

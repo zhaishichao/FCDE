@@ -344,24 +344,24 @@ class DSSMOTE_P:
             if self.parameter.verbose:
                 print(logbook.stream)
         # 最后一代种群的最好个体
-
-        pareto_fronts = tools.sortNondominated(population, len(population), first_front_only=True)
+        feasible_pop, infeasible_pop = self.get_feasible_infeasible(population)  # 得到可行个体与不可行个体
+        pareto_fronts = tools.sortNondominated(feasible_pop, len(feasible_pop), first_front_only=True)
         inds_syn = pareto_fronts[0]
         if len(inds_syn) < 5:
-            feasible_pop, infeasible_pop = self.get_feasible_infeasible(population)  # 得到可行个体与不可行个体
-            if len(feasible_pop) >= 5:
-                inds_syn = self.toolbox.select(feasible_pop, 5)
+            if len(inds_syn) + len(feasible_pop) >= 5:
+                inds_syn = inds_syn + feasible_pop[
+                                      :5 - len(inds_syn)]
             else:
                 inds_syn = feasible_pop + infeasible_pop[
-                                          :5 - len(feasible_pop)]
-
+                                          :5 - (len(feasible_pop) + len(inds_syn))]
         synthesis_instances = []
+
         for ind in inds_syn:
             func = self.toolbox.compile(expr=ind)
             synthesis_instance = func(*self.data['min_x'])
             synthesis_instances.append(synthesis_instance)
 
-        print('前沿中个体数：', len(pareto_fronts[0]), '合成实例数：', len(inds_syn))
+        print('前沿中个体数：', len(pareto_fronts[0]), '合成实例数：', len(inds_syn), '可行解数量：', len(feasible_pop))
         return synthesis_instances
 
     # 7. 获取合成实例
@@ -371,8 +371,9 @@ class DSSMOTE_P:
         index = 1
         while curr_syn < self.total_syn:
             print('第', index, '轮合成')
-            X_syn = X_syn + self.evolutionary()
-            curr_syn = curr_syn + len(X_syn)
+            syn = self.evolutionary()
+            X_syn = X_syn + syn
+            curr_syn = curr_syn + len(syn)
             index = index + 1
 
         # curr_syn > self.total_syn, 需要截取

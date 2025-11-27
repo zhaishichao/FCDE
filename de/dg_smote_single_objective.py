@@ -1,6 +1,7 @@
 import math
 import operator
 
+import deap.tools
 import numpy as np
 from deap import base, creator, tools, gp
 from deap.algorithms import varAnd
@@ -162,7 +163,7 @@ class DGSMOTE_SINGLE:
                         angle = -1
                     angle = math.degrees(math.acos(angle))
                 distance = b - c
-                individual.fitness.values = (angle, distance)
+                individual.fitness.values = (distance,)
 
     ####################**********GP进化合成实例**********####################
 
@@ -177,7 +178,7 @@ class DGSMOTE_SINGLE:
         # pset.addEphemeralConstant("rand101", partial(np.random.uniform, 0, 1))
 
         # 创建适应度和GP个体
-        creator.create("FitnessMulti", base.Fitness, weights=(1.0, 1.0))
+        creator.create("FitnessMulti", base.Fitness, weights=(1.0,))
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMulti)
 
         # 初始化toolbox
@@ -187,7 +188,7 @@ class DGSMOTE_SINGLE:
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
         toolbox.register("compile", gp.compile, pset=pset)
         toolbox.register("evaluate", self.evaluate)
-        toolbox.register("selTournament", selTournament, tournsize=3)
+        toolbox.register("selTournament", deap.tools.selTournament, tournsize=3)
         toolbox.register("mate", gp.cxOnePoint)
         toolbox.register("expr_mut", gp.genFull, min_=1, max_=6)
         toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)

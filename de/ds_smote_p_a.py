@@ -50,43 +50,7 @@ def sample_and_center(x, threshold=None):
     # 计算采样样本的中心点（平均值）
     center = np.mean(sampled_x, axis=0)
 
-    return center
-
-
-def calculate_distance_stats(sample, x, k):
-    """
-    计算样本与特征数据中所有样本的欧式距离，并返回前k个最大和最小距离的平均值
-
-    参数:
-    sample: ndarray, 单个样本
-    x: ndarray, 特征数据
-    k: int, 要取的前k个距离
-
-    返回:
-    avg_max_dis: float, 前k个最大距离的平均值
-    avg_min_dis: float, 前k个最小距离的平均值
-    """
-
-    # 确保sample是2D数组（单个样本）
-    sample = sample.reshape(1, -1)
-
-    # 计算sample与x中所有样本的欧式距离
-    distances = cdist(sample, x, metric='euclidean')[0]
-
-    # 对距离进行排序
-    sorted_distances = np.sort(distances)
-
-    # 获取前k个最小距离（包括自身，距离为0）
-    min_k_distances = sorted_distances[:k]
-
-    # 获取前k个最大距离
-    max_k_distances = sorted_distances[-k:]
-
-    # 计算平均值
-    avg_min_dis = np.mean(min_k_distances)
-    avg_max_dis = np.mean(max_k_distances)
-
-    return avg_max_dis, avg_min_dis
+    return center, sampled_x
 
 
 def remove_duplicate_individuals(individuals):
@@ -174,6 +138,42 @@ def cosine_angle(a, b):
     return np.degrees(np.arccos(cos))
 
 
+# 更简洁的版本
+def calculate_k_min_distances_mean(x, k):
+    """
+    紧凑版本的函数实现
+    """
+    center = np.mean(x, axis=0)
+    distances = np.linalg.norm(x - center, axis=1)
+    return np.mean(np.partition(distances, -k)[-k:])
+
+
+def selTournamentNDCD(individuals, k, tournsize):
+    """Select the best individual among *tournsize* randomly chosen
+    individuals, *k* times. The list returned contains
+    references to the input *individuals*.
+
+    :param individuals: A list of individuals to select from.
+    :param k: The number of individuals to select.
+    :param tournsize: The number of individuals participating in each tournament.
+    :param fit_attr: The attribute of individuals to use as selection criterion
+    :returns: A list of selected individuals.
+
+    This function uses the :func:`~random.choice` function from the python base
+    :mod:`random` module.
+    """
+    # 先做非支配排序，再根据选择支配等级进行选择
+    chosen = []
+    for i in range(k):
+        aspirants = tools.selRandom(individuals, tournsize)  # 随机选择tournsize个个体
+        pareto_fronts = tools.sortNondominated(aspirants, len(aspirants))  # 进行非支配排序
+        tools.emo.assignCrowdingDist(pareto_fronts[0])
+        pareto_first_front = sorted(pareto_fronts[0], key=attrgetter("fitness.crowding_dist"),
+                                    reverse=True)  # 按拥挤度降序排列
+        chosen.append(pareto_first_front[0])  # 选择第一个等级中拥挤度最大的
+    return chosen
+
+
 class DSSMOTE_P_A:
     def __init__(self, X=None, y=None, evol_parameter=None):
         self.X = X
@@ -182,8 +182,8 @@ class DSSMOTE_P_A:
         self.total_syn = None
         self.parameter = evol_parameter
         self.data = self.preprocess_data()
-        self.maj_center = sample_and_center(self.data['maj_x'], 2)
-        self.min_center = sample_and_center(self.data['min_x'], 2)
+        self.maj_center, self.maj_samples = sample_and_center(self.data['maj_x'])
+        self.min_center, self.min_samples = sample_and_center(self.data['min_x'])
         self.pset, self.toolbox = self.init_toolbox()
 
     ####################**********数据预处理**********####################
@@ -226,9 +226,6 @@ class DSSMOTE_P_A:
         :return: void
         '''
         for j, individual in enumerate(individuals):
-            # 更新一下多数类和少数类的中心
-            maj_center = sample_and_center(self.data['maj_x'])
-            min_center = sample_and_center(self.data['min_x'])
             if not individual.fitness.valid:
                 func = self.toolbox.compile(expr=individual)
                 new_instance = func(*self.data['min_x'])
@@ -239,11 +236,10 @@ class DSSMOTE_P_A:
                 proportion, feasible, cv = minority_class_proportion(self.X, self.y, new_instance, self.k)
                 # 评估新实例与多数类和少数类的距离
                 maj_min_dis = maj_dis - min_dis
-
                 individual.fitness.values = (maj_min_dis, proportion)
                 individual.feasible = feasible
                 # maj_center - min_center表示一条从少数类中心到多数类中心的向量
-                individual.cosine_angle = cosine_angle(maj_center - min_center, new_instance)
+                individual.cosine_angle = cosine_angle(self.maj_center - self.min_center, new_instance)
                 individual.fitness.cv = cv
 
     def get_feasible_infeasible(self, pop):
@@ -252,10 +248,18 @@ class DSSMOTE_P_A:
         :param constraints: 约束阈值
         :return: 可行解和不可行解
         '''
+        mean_min_distance = calculate_k_min_distances_mean(self.min_samples, k=2)
         feasible_inds = []
         infeasible_inds = []
         for ind in pop:
-            if ind.feasible and ind.cosine_angle < 90:  # 满足约束条件的个体
+            func = self.toolbox.compile(expr=ind)
+            new_instance = func(*self.data['min_x'])
+            # 计算新实例和少数类中心的欧氏距离
+            dis = np.linalg.norm(self.min_center - new_instance)
+            print("ind：", "目标1：", ind.fitness.values[0], "角度：", ind.cosine_angle, "dis和mean_dis：", dis,
+                  mean_min_distance)
+            if ind.feasible and ind.cosine_angle < 90 and ind.fitness.values[
+                0] >= 0 and dis <= mean_min_distance:  # 满足约束条件的个体
                 feasible_inds.append(ind)
             else:  # 不满足约束条件的个体
                 infeasible_inds.append(ind)
@@ -285,7 +289,7 @@ class DSSMOTE_P_A:
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
         toolbox.register("compile", gp.compile, pset=pset)
         toolbox.register("evaluate", self.evaluate)
-        toolbox.register("selTournament", selTournament, tournsize=7)
+        toolbox.register("selTournament", selTournamentNDCD, tournsize=5)
 
         toolbox.register("mate", gp.cxOnePoint)
         toolbox.register("expr_mut", gp.genFull, min_=1, max_=6)
@@ -301,8 +305,8 @@ class DSSMOTE_P_A:
     def evolutionary(self):
 
         # 更新一下多数类和少数类的中心
-        self.maj_center = sample_and_center(self.data['maj_x'], 2)
-        self.min_center = sample_and_center(self.data['min_x'], 2)
+        self.maj_center, self.maj_samples = sample_and_center(self.data['maj_x'])
+        self.min_center, self.min_samples = sample_and_center(self.data['min_x'])
 
         # 记录一下迭代信息
         stats = tools.Statistics(key=lambda ind: ind.fitness.values)
@@ -328,11 +332,12 @@ class DSSMOTE_P_A:
 
             population = remove_duplicate_individuals(population)
 
-            if len(population) < self.parameter.POPSIZE:
+            while len(population) < self.parameter.POPSIZE:
                 for i in range(self.parameter.POPSIZE - len(population)):
                     ind = self.toolbox.individual()
                     self.toolbox.evaluate(ind)
                     population.append(ind)
+                population = remove_duplicate_individuals(population)
 
             # population = self.toolbox.select(population, self.parameter.POPSIZE)
 
@@ -355,23 +360,28 @@ class DSSMOTE_P_A:
                 print(logbook.stream)
         # 最后一代种群的最好个体
 
-        pareto_fronts = tools.sortNondominated(population, len(population), first_front_only=True)
-        inds_syn = pareto_fronts[0]
-        if len(inds_syn) < 5:
-            feasible_pop, infeasible_pop = self.get_feasible_infeasible(population)  # 得到可行个体与不可行个体
-            if len(feasible_pop) >= 5:
-                inds_syn = self.toolbox.select(feasible_pop, 5)
-            else:
-                inds_syn = feasible_pop + infeasible_pop[
-                                          :5 - len(feasible_pop)]
-
+        feasible_pop, infeasible_pop = self.get_feasible_infeasible(population)  # 得到可行个体与不可行个体
+        pareto_fronts = [[]]
+        if len(feasible_pop) == 0:
+            inds_syn = infeasible_pop[
+                       :5 - len(feasible_pop)]
+        else:
+            pareto_fronts = tools.sortNondominated(feasible_pop, len(feasible_pop), first_front_only=True)
+            inds_syn = pareto_fronts[0]
+            if len(inds_syn) < 5:
+                if len(inds_syn) + len(feasible_pop) >= 5:
+                    inds_syn = inds_syn + feasible_pop[
+                                          :5 - len(inds_syn)]
+                else:
+                    inds_syn = feasible_pop + infeasible_pop[
+                                              :5 - (len(feasible_pop) + len(inds_syn))]
         synthesis_instances = []
         for ind in inds_syn:
             func = self.toolbox.compile(expr=ind)
             synthesis_instance = func(*self.data['min_x'])
             synthesis_instances.append(synthesis_instance)
 
-        print('前沿中个体数：', len(pareto_fronts[0]), '合成实例数：', len(inds_syn))
+        print('前沿中个体数：', len(pareto_fronts[0]), '合成实例数：', len(inds_syn), '可行解数量：', len(feasible_pop))
         return synthesis_instances
 
     # 7. 获取合成实例
@@ -381,8 +391,9 @@ class DSSMOTE_P_A:
         index = 1
         while curr_syn < self.total_syn:
             print('第', index, '轮合成')
-            X_syn = X_syn + self.evolutionary()
-            curr_syn = curr_syn + len(X_syn)
+            syn = self.evolutionary()
+            X_syn = X_syn + syn
+            curr_syn = curr_syn + len(syn)
             index = index + 1
 
         # curr_syn > self.total_syn, 需要截取
