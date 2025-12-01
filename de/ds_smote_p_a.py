@@ -1,5 +1,6 @@
 import operator
 from operator import attrgetter
+import random
 
 import numpy as np
 from deap import base, creator, tools, gp, algorithms
@@ -127,6 +128,13 @@ def minority_class_proportion(x: Union[List, np.ndarray],
 
 def cosine_angle(a, b):
     cos = np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+    if(cos.size>1):
+        print(cos)
+        print(a,b)
+    if cos > 1:
+        cos = 1
+    if cos < -1:
+        cos = -1
     return np.degrees(np.arccos(cos))
 
 
@@ -166,6 +174,24 @@ def selTournamentNDCD(individuals, k, tournsize):
     return chosen
 
 
+def selTournament_cv(individuals, k):
+    chosen = []
+    for i in range(k):
+        aspirants = tools.selRandom(individuals, 2)  # 随机选择tournsize个个体
+        if aspirants[0].fitness.cv == 0 and aspirants[1].fitness.cv > 0:
+            chosen.append(aspirants[0])
+        elif aspirants[0].fitness.cv > 0 and aspirants[1].fitness.cv == 0:
+            chosen.append(aspirants[1])
+        elif aspirants[0].fitness.cv > 0 and aspirants[1].fitness.cv > 0:
+            if aspirants[0].fitness.cv <= aspirants[1].fitness.cv:
+                chosen.append(aspirants[0])
+            else:
+                chosen.append(aspirants[1])
+        else:
+            chosen.append(aspirants[0])
+    return chosen
+
+
 def calculate_statistics_inndividuals(individuals):
     """
     计算individuals列表中各个属性的最大值
@@ -184,13 +210,41 @@ def calculate_statistics_inndividuals(individuals):
         max_minimum_distance = 1
     max_maj_min_distance = max(-ind.fitness.values[0] for ind in individuals)
     max_min_center_distance = max(ind.min_center_distance for ind in individuals)
-    max_cosine_angle = max(ind.cosine_angle - 90 for ind in individuals)
+    max_cosine_angle = max((ind.cosine_angle - 90) for ind in individuals)
 
     # 以字典的形式返回
     return {'minimum_distance': max_minimum_distance,
             'maj_min_distance': max_maj_min_distance,
             'min_center_distance': max_min_center_distance,
             'cosine_angle': max_cosine_angle}
+
+
+def calculate_mean_inndividuals_cv(individuals, thresholds):
+    """
+    计算individuals列表中各个属性的最大值
+
+    参数:
+    individuals -- Individual对象列表
+
+    返回:
+    tuple -- (max_a, max_b, max_c, max_d)
+    """
+    if not individuals:
+        return None, None, None, None
+
+    mean_maj_min_distance = sum(
+        max(0, -ind.fitness.values[0] / thresholds['maj_min_distance']) for ind in individuals) / len(
+        individuals)
+    mean_min_center_distance = sum(
+        max(0, ind.min_center_distance / thresholds['min_center_distance']) for ind in individuals) / len(individuals)
+    mean_cosine_angle = sum(max(0, (ind.cosine_angle - 90) / thresholds['cosine_angle']) for ind in individuals) / len(
+        individuals)
+
+    # 以字典的形式返回
+    return {
+        'mean_maj_min_distance': mean_maj_min_distance,
+        'mean_min_center_distance': mean_min_center_distance,
+        'mean_cosine_angle': mean_cosine_angle}
 
 
 class DSSMOTE_P_A:
@@ -271,12 +325,13 @@ class DSSMOTE_P_A:
         difference = []
         # difference.append(max(0,  -individual.minimum_distance / constraint_thresholds['minimum_distance']))
         difference.append(max(0, -individual.fitness.values[0] / constraint_thresholds['maj_min_distance']))
-        difference.append(max(0, individual.cosine_angle-90 / constraint_thresholds['cosine_angle']))
+        difference.append(max(0, (individual.cosine_angle - 90) / constraint_thresholds['cosine_angle']))
         difference.append(max(0, individual.min_center_distance / constraint_thresholds['min_center_distance']))
-        cv = sum(difference)  # 求0和cv中的最小值之和，cv=0，表示是一个可行个体
+        cv = sum(difference) / 3  # 求0和cv中的最小值之和，cv=0，表示是一个可行个体
         individual.fitness.cv = cv  # 将cv值保存在个体中
+        return cv
 
-    def get_feasible_infeasible(self, pop,constraint_thresholds):
+    def get_feasible_infeasible(self, pop, constraint_thresholds):
         '''
         :param pop: 种群
         :param constraints: 约束阈值
@@ -288,7 +343,7 @@ class DSSMOTE_P_A:
                 index.append(i)  # 将不符合约束条件的个体的索引添加到index中
         feasible_pop = [ind for j, ind in enumerate(pop) if j not in index]  # 可行个体
         infeasible_pop = [ind for j, ind in enumerate(pop) if j in index]  # 不可行个体
-        infeasible_pop = sorted(infeasible_pop, key=attrgetter("fitness.cv"), reverse=True)  # 对不可行个体按cv值降序排序
+        infeasible_pop = sorted(infeasible_pop, key=attrgetter("fitness.cv"), reverse=False)  # 对不可行个体按cv值升序排列
         return feasible_pop, infeasible_pop
 
     ####################**********GP进化合成实例**********####################
@@ -300,6 +355,8 @@ class DSSMOTE_P_A:
         pset.addPrimitive(operator.sub, 2)
         pset.addPrimitive(operator.mul, 2)
         pset.addPrimitive(protectedDiv, 2)
+
+        
         # pset.addEphemeralConstant("rand101", ephemeral=lambda: np.random.uniform(0, 1))
         # pset.addEphemeralConstant("rand101", partial(np.random.uniform, 0, 1))
 
@@ -315,7 +372,7 @@ class DSSMOTE_P_A:
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
         toolbox.register("compile", gp.compile, pset=pset)
         toolbox.register("evaluate", self.evaluate)
-        toolbox.register("selTournament", selTournamentNDCD, tournsize=5)
+        toolbox.register("selTournament", selTournament_cv)
 
         toolbox.register("mate", gp.cxOnePoint)
         toolbox.register("expr_mut", gp.genFull, min_=1, max_=6)
@@ -351,8 +408,7 @@ class DSSMOTE_P_A:
 
         # 计算个体的统计信息
         constraint_thresholds = calculate_statistics_inndividuals(population)
-
-        population = self.toolbox.select(population, self.parameter.POPSIZE)
+        self.get_feasible_infeasible(population, constraint_thresholds)  # 得到可行个体与不可行个体
 
         # 进化搜索
         print('########### \t Start the evolution! \t ##########')
@@ -363,6 +419,7 @@ class DSSMOTE_P_A:
             population = population + offspring
 
             population = remove_duplicate_individuals(population)
+            print('重复个体数：', self.parameter.POPSIZE * 2 - len(population))
 
             while len(population) < self.parameter.POPSIZE:
                 for i in range(self.parameter.POPSIZE - len(population)):
@@ -373,7 +430,9 @@ class DSSMOTE_P_A:
 
             # population = self.toolbox.select(population, self.parameter.POPSIZE)
 
-            feasible_pop, infeasible_pop = self.get_feasible_infeasible(population)  # 得到可行个体与不可行个体
+            feasible_pop, infeasible_pop = self.get_feasible_infeasible(population,
+                                                                        constraint_thresholds)  # 得到可行个体与不可行个体
+
             if len(feasible_pop) >= self.parameter.POPSIZE:
                 population = self.toolbox.select(feasible_pop, self.parameter.POPSIZE)
             elif len(feasible_pop) > 0:
@@ -384,6 +443,8 @@ class DSSMOTE_P_A:
                 population = feasible_pop + infeasible_pop[
                                             :self.parameter.POPSIZE - len(
                                                 feasible_pop)]  # 加入不可行个体中违约程度小的个体，保证pop数量为POPSIZE
+            print(f'第{gen}代平均约束值', calculate_mean_inndividuals_cv(population, constraint_thresholds))
+            print('第一个个体的cv值：', population[0].fitness.cv)
             # 更新记录
             record = stats.compile(population)
             logbook.record(gen=gen, **record)
@@ -392,21 +453,21 @@ class DSSMOTE_P_A:
                 print(logbook.stream)
         # 最后一代种群的最好个体
 
-        feasible_pop, infeasible_pop = self.get_feasible_infeasible(population)  # 得到可行个体与不可行个体
+        feasible_pop, infeasible_pop = self.get_feasible_infeasible(population, constraint_thresholds)  # 得到可行个体与不可行个体
         pareto_fronts = [[]]
         if len(feasible_pop) == 0:
             inds_syn = infeasible_pop[
-                       :5 - len(feasible_pop)]
+                       :10 - len(feasible_pop)]
         else:
             pareto_fronts = tools.sortNondominated(feasible_pop, len(feasible_pop), first_front_only=True)
             inds_syn = pareto_fronts[0]
-            if len(inds_syn) < 5:
-                if len(inds_syn) + len(feasible_pop) >= 5:
+            if len(inds_syn) < 10:
+                if len(inds_syn) + len(feasible_pop) >= 10:
                     inds_syn = inds_syn + feasible_pop[
-                                          :5 - len(inds_syn)]
+                                          :10 - len(inds_syn)]
                 else:
                     inds_syn = feasible_pop + infeasible_pop[
-                                              :5 - (len(feasible_pop) + len(inds_syn))]
+                                              :10 - (len(feasible_pop) + len(inds_syn))]
         synthesis_instances = []
         for ind in inds_syn:
             func = self.toolbox.compile(expr=ind)
