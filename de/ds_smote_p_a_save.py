@@ -178,7 +178,7 @@ def selTournament_cv(individuals, k):
     chosen = []
     for i in range(k):
         aspirants = tools.selRandom(individuals, 2)  # 随机选择tournsize个个体
-        # print(f'亲本1：', aspirants[0], '亲本2：', aspirants[1])
+        print(f'亲本1：', aspirants[0], '亲本2：', aspirants[1])
         if aspirants[0].fitness.cv == 0 and aspirants[1].fitness.cv > 0:
             chosen.append(aspirants[0])
         elif aspirants[0].fitness.cv > 0 and aspirants[1].fitness.cv == 0:
@@ -258,7 +258,7 @@ class DSSMOTE_P_A:
         self.maj_center, self.maj_samples = sample_and_center(self.data['maj_x'])
         self.min_center, self.min_samples = sample_and_center(self.data['min_x'])
         # 计算少数类中的平均最小距离
-        self.mean_min_distance = calculate_k_min_distances_mean(self.min_samples, k=5)
+        self.mean_min_distance = calculate_k_min_distances_mean(self.min_samples, k=2)
         self.pset, self.toolbox = self.init_toolbox()
 
     ####################**********数据预处理**********####################
@@ -355,15 +355,9 @@ class DSSMOTE_P_A:
         pset.addPrimitive(operator.add, 2)
         pset.addPrimitive(operator.sub, 2)
         pset.addPrimitive(operator.mul, 2)
-        # 添加向量生成函数作为基元（不是终端！）
-        # pset.addPrimitive(lambda: np.random.uniform(-1, 1, self.X.shape[1]), 0, name="rand_vec")
-
-        # 重命名参数
-        pset.renameArguments(ARG0='x')
-        # pset.addPrimitive(protectedDiv, 2)
+        pset.addPrimitive(protectedDiv, 2)
         
         # pset.addEphemeralConstant("rand101", ephemeral=lambda: np.random.uniform(0, 1))
-        # pset.addEphemeralConstant("rand101", ephemeral=lambda: np.random.uniform(-1, 1, self.X.shape[1]))
         # pset.addEphemeralConstant("rand101", partial(np.random.uniform, 0, 1))
 
         # 创建适应度和GP个体
@@ -397,7 +391,7 @@ class DSSMOTE_P_A:
         self.maj_center, self.maj_samples = sample_and_center(self.data['maj_x'])
         self.min_center, self.min_samples = sample_and_center(self.data['min_x'])
         # 计算少数类中的平均最小距离
-        self.mean_min_distance = calculate_k_min_distances_mean(self.min_samples, k=5)
+        self.mean_min_distance = calculate_k_min_distances_mean(self.min_samples, k=2)
 
         # 记录一下迭代信息
         stats = tools.Statistics(key=lambda ind: ind.fitness.values)
@@ -423,20 +417,20 @@ class DSSMOTE_P_A:
             offspring = varAnd(parent, self.toolbox, self.parameter.CXPB, self.parameter.MUTPB)  # 交叉、变异
             self.toolbox.evaluate(offspring)  # 评估变异后父本
 
-            # for ind_p,ind_o in zip(parent,offspring):
-            #     ind_p_str=str(ind_p)
-            #     print('亲本',ind_p_str)
-            #     ind_o_str=str(ind_o)
-            #     print('子代', ind_o_str)
-            #     print('##########')
-            #
-            #     if ind_p_str==ind_o_str:
-            #         print('重复个体：', ind_p_str)
+            for ind_p,ind_o in zip(parent,offspring):
+                ind_p_str=str(ind_p)
+                print('亲本',ind_p_str)
+                ind_o_str=str(ind_o)
+                print('子代', ind_o_str)
+                print('##########')
+
+                if ind_p_str==ind_o_str:
+                    print('重复个体：', ind_p_str)
 
             population = population + offspring
 
             population = remove_duplicate_individuals(population)
-            # print('重复个体数：', self.parameter.POPSIZE * 2 - len(population))
+            print('重复个体数：', self.parameter.POPSIZE * 2 - len(population))
 
             while len(population) < self.parameter.POPSIZE:
                 for i in range(self.parameter.POPSIZE - len(population)):
@@ -461,7 +455,7 @@ class DSSMOTE_P_A:
                                             :self.parameter.POPSIZE - len(
                                                 feasible_pop)]  # 加入不可行个体中违约程度小的个体，保证pop数量为POPSIZE
             print(f'第{gen}代平均约束值', calculate_mean_inndividuals_cv(population, constraint_thresholds))
-            # print('第一个个体的cv值：', population[0].fitness.cv)
+            print('第一个个体的cv值：', population[0].fitness.cv)
             # 更新记录
             record = stats.compile(population)
             logbook.record(gen=gen, **record)

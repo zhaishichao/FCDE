@@ -5,9 +5,9 @@ import warnings
 warnings.filterwarnings("ignore")  # 忽略警告
 
 file_path = '../datasets/dat/'
-save_path = './tsne_results_1128_p_a/'
-# datasetnames = ['iris0', 'ecoli1', 'glass0', 'glass1', 'haberman', 'pima', 'segment0', 'vowel0', 'wisconsin', 'yeast1']
-datasetnames = ['pima', 'segment0', 'vowel0', 'wisconsin', 'yeast1']
+save_path = './tsne_results_1202_p_a_/'
+datasetnames = ['iris0', 'ecoli1', 'glass0', 'glass1', 'haberman', 'pima', 'segment0', 'vowel0', 'wisconsin', 'yeast1']
+# datasetnames = ['pima', 'segment0', 'vowel0', 'wisconsin', 'yeast1']
 if __name__ == '__main__':
     for datasetname in datasetnames:
         X, y = data_loader(file_path + datasetname + '.dat')
@@ -16,7 +16,7 @@ if __name__ == '__main__':
             print(f'实例数量：{X.shape[0]}', file=f)
             print(f'特征数量：{X.shape[1]}', file=f)
 
-        X_train, X_test, y_train, y_test = data_preprocess(X, y,random_state=42)
+        X_train, X_test, y_train, y_test = data_preprocess(X, y, standard=False, random_state=42)
 
         from sklearn.preprocessing import StandardScaler
         from visualize import tsne_visualization_binary
@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
         from de import DSSMOTE_P_A
 
-        evol_parameter = EvolutionaryParameterConfig(300, 0.8, 0.2, 100, False)
+        evol_parameter = EvolutionaryParameterConfig(30, 0.8, 0.2, 100, False)
 
         dgpa = DSSMOTE_P_A(X=X_train, y=y_train, evol_parameter=evol_parameter)
         X_syn, y_syn = dgpa.fit_resample_synthesis_only()
