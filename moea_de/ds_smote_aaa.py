@@ -7,250 +7,12 @@ from deap import base, creator, tools, gp, algorithms
 from deap.algorithms import varAnd
 from deap.tools import selRandom, selTournamentDCD, selNSGA2, selTournament
 
-from scipy.spatial.distance import cdist
-from collections import Counter
-from typing import Union, List
+from moea_de.operator import sample_and_center, calculate_k_min_distances_mean, minority_class_proportion, \
+    selTournament_cv, cosine_angle, calculate_statistics_inndividuals, remove_duplicate_individuals, \
+    calculate_mean_inndividuals_cv
 
 
-# 自定义受保护的除法
-def protectedDiv(left, right):
-    with np.errstate(divide='ignore', invalid='ignore'):
-        x = np.divide(left, right)
-        if isinstance(x, np.ndarray):
-            x[np.isinf(x)] = 1
-            x[np.isnan(x)] = 1
-        elif np.isinf(x) or np.isnan(x):
-            x = 1
-    return x
-
-
-# 对数据进行采样并计算采样样本的中心点
-def sample_and_center(x, threshold=None):
-    """
-    对数据进行采样并计算采样样本的中心点
-
-    参数:
-    x: ndarray, 特征数据
-
-    返回:
-    center: ndarray, 采样样本的中心点（平均值）
-    sampled_x: ndarray, 采样后的特征数据
-    """
-    # 获取数据总数量
-    total_samples = len(x)
-
-    # 生成随机采样数量n，范围在(total_samples/2, total_samples)之间
-    n = np.random.randint(total_samples // 2 + 1, total_samples)
-    if threshold is not None:
-        n = threshold
-
-    # 从原始数据中随机采样n个样本
-    indices = np.random.choice(total_samples, size=n, replace=False)
-    sampled_x = x[indices]
-
-    # 计算采样样本的中心点（平均值）
-    center = np.mean(sampled_x, axis=0)
-
-    return center, sampled_x
-
-
-def remove_duplicate_individuals(individuals):
-    seen = set()
-    result = []
-    for ind in individuals:
-        key = str(ind)
-        if key not in seen:
-            seen.add(key)
-            result.append(ind)
-    return result
-
-
-# 计算k个最短距离的实例中，少数类的占比
-def minority_class_proportion(x: Union[List, np.ndarray],
-                              y: Union[List, np.ndarray],
-                              x_new: Union[List, np.ndarray],
-                              k: int) -> float:
-    """
-    计算新实例在k近邻中少数类所占的比例
-
-    参数:
-    x: 特征数据，形状为(n_samples, n_features)
-    y: 标签数据，形状为(n_samples,)，一般为2分类（0或1）
-    x_new: 新实例的特征数据，形状为(n_features,)
-    k: 近邻数量
-
-    返回:
-    float: 少数类在k近邻中所占的比例
-    """
-
-    # 转换为numpy数组以便处理
-    x = np.array(x)
-    y = np.array(y)
-    x_new = np.array(x_new)
-
-    # 参数检查
-    if len(x) != len(y):
-        raise ValueError("特征数据x和标签y的长度必须相同")
-
-    if len(x) == 0:
-        raise ValueError("输入数据不能为空")
-
-    if k <= 0 or k > len(x):
-        raise ValueError(f"k值必须在1到{len(x)}之间")
-
-    # 确定少数类
-    class_counts = Counter(y)
-    if len(class_counts) != 2:
-        raise ValueError("目前只支持2分类问题")
-
-    minority_class = min(class_counts, key=class_counts.get)
-    # print(f"少数类是: {minority_class}")
-
-    # 计算欧式距离
-    distances = []
-    for i, sample in enumerate(x):
-        # 计算x_new与每个样本之间的欧式距离
-        distance = np.sqrt(np.sum((sample - x_new) ** 2))
-        distances.append((distance, y[i]))
-
-    # 根据距离排序
-    distances.sort(key=lambda x: x[0])
-
-    # 获取前k个最近邻的标签
-    k_nearest_labels = [label for _, label in distances[:k]]
-
-    # 计算少数类的比例
-    minority_count = k_nearest_labels.count(minority_class)
-    proportion = minority_count / k
-
-    return proportion, distances[0][0]
-
-
-def cosine_angle(a, b):
-    cos = np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
-    if (cos.size > 1):
-        print(cos)
-        print(a, b)
-    if cos > 1:
-        cos = 1
-    if cos < -1:
-        cos = -1
-    return np.degrees(np.arccos(cos))
-
-
-# 更简洁的版本
-def calculate_k_min_distances_mean(x, k):
-    """
-    紧凑版本的函数实现
-    """
-    center = np.mean(x, axis=0)
-    distances = np.linalg.norm(x - center, axis=1)
-    return np.mean(np.partition(distances, -k)[-k:])
-
-
-def selTournamentNDCD(individuals, k, tournsize):
-    """Select the best individual among *tournsize* randomly chosen
-    individuals, *k* times. The list returned contains
-    references to the input *individuals*.
-
-    :param individuals: A list of individuals to select from.
-    :param k: The number of individuals to select.
-    :param tournsize: The number of individuals participating in each tournament.
-    :param fit_attr: The attribute of individuals to use as selection criterion
-    :returns: A list of selected individuals.
-
-    This function uses the :func:`~random.choice` function from the python base
-    :mod:`random` module.
-    """
-    # 先做非支配排序，再根据选择支配等级进行选择
-    chosen = []
-    for i in range(k):
-        aspirants = tools.selRandom(individuals, tournsize)  # 随机选择tournsize个个体
-        pareto_fronts = tools.sortNondominated(aspirants, len(aspirants))  # 进行非支配排序
-        tools.emo.assignCrowdingDist(pareto_fronts[0])
-        pareto_first_front = sorted(pareto_fronts[0], key=attrgetter("fitness.crowding_dist"),
-                                    reverse=True)  # 按拥挤度降序排列
-        chosen.append(pareto_first_front[0])  # 选择第一个等级中拥挤度最大的
-    return chosen
-
-
-def selTournament_cv(individuals, k):
-    chosen = []
-    while len(chosen) < k:
-        aspirants = tools.selRandom(individuals, 2)  # 随机选择tournsize个个体
-        # print(f'亲本1：', aspirants[0], '亲本2：', aspirants[1])
-        if aspirants[0].fitness.cv == 0 and aspirants[1].fitness.cv > 0:
-            chosen.append(aspirants[0])
-        elif aspirants[0].fitness.cv > 0 and aspirants[1].fitness.cv == 0:
-            chosen.append(aspirants[1])
-        elif aspirants[0].fitness.cv > 0 and aspirants[1].fitness.cv > 0:
-            if aspirants[0].fitness.cv <= aspirants[1].fitness.cv:
-                chosen.append(aspirants[0])
-            else:
-                chosen.append(aspirants[1])
-        else:
-            chosen.append(aspirants[0])
-        if len(chosen) > 1 and str(chosen[-1]) == str(chosen[-2]):
-            chosen.pop()
-    return chosen
-
-
-def calculate_statistics_inndividuals(individuals):
-    """
-    计算individuals列表中各个属性的最大值
-
-    参数:
-    individuals -- Individual对象列表
-
-    返回:
-    tuple -- (max_a, max_b, max_c, max_d)
-    """
-    if not individuals:
-        return None, None, None, None
-
-    max_minimum_distance = max(-ind.minimum_distance for ind in individuals)
-    if max_minimum_distance == 0:
-        max_minimum_distance = 1
-    max_maj_min_distance = max(-ind.fitness.values[0] for ind in individuals)
-    max_min_center_distance = max(ind.min_center_distance for ind in individuals)
-    max_cosine_angle = max((ind.cosine_angle - 90) for ind in individuals)
-
-    # 以字典的形式返回
-    return {'minimum_distance': max_minimum_distance,
-            'maj_min_distance': max_maj_min_distance,
-            'min_center_distance': max_min_center_distance,
-            'cosine_angle': max_cosine_angle}
-
-
-def calculate_mean_inndividuals_cv(individuals, thresholds):
-    """
-    计算individuals列表中各个属性的最大值
-
-    参数:
-    individuals -- Individual对象列表
-
-    返回:
-    tuple -- (max_a, max_b, max_c, max_d)
-    """
-    if not individuals:
-        return None, None, None, None
-
-    mean_maj_min_distance = sum(
-        max(0, -ind.fitness.values[0] / thresholds['maj_min_distance']) for ind in individuals) / len(
-        individuals)
-    mean_min_center_distance = sum(
-        max(0, ind.min_center_distance / thresholds['min_center_distance']) for ind in individuals) / len(individuals)
-    mean_cosine_angle = sum(max(0, (ind.cosine_angle - 90) / thresholds['cosine_angle']) for ind in individuals) / len(
-        individuals)
-
-    # 以字典的形式返回
-    return {
-        'mean_maj_min_distance': mean_maj_min_distance,
-        'mean_min_center_distance': mean_min_center_distance,
-        'mean_cosine_angle': mean_cosine_angle}
-
-
-class DSSMOTE_P_A:
+class DSSMOTE_AAA:
     def __init__(self, X=None, y=None, evol_parameter=None):
         self.X = X
         self.y = y
@@ -265,7 +27,7 @@ class DSSMOTE_P_A:
 
     ####################**********数据预处理**********####################
 
-    # 1. 数据预处理
+    # 数据预处理
     def preprocess_data(self):
         '''
         将原始数据的多数类和少数类分割开，返回值是一个数据字典
@@ -294,13 +56,8 @@ class DSSMOTE_P_A:
             'min_y': min_y
         }
 
-    # 4. 评估个体
+    # 评估个体
     def evaluate(self, individuals):
-        '''
-        :param individuals: 种群或个体
-        :param index: 偏移量，用于指示当前子种群所对应的参考目标（多数类，少数类），来计算欧氏距离和角度
-        :return: void
-        '''
         for j, individual in enumerate(individuals):
             if not individual.fitness.valid:
                 func = self.toolbox.compile(expr=individual)
@@ -329,8 +86,8 @@ class DSSMOTE_P_A:
         # difference.append(max(0,  -individual.minimum_distance / constraint_thresholds['minimum_distance']))
         difference.append(max(0, -individual.fitness.values[0] / constraint_thresholds['maj_min_distance']))
         difference.append(max(0, (individual.cosine_angle - 90) / constraint_thresholds['cosine_angle']))
-        difference.append(max(0, individual.min_center_distance / constraint_thresholds['min_center_distance']))
-        cv = sum(difference) / 3  # 求0和cv中的最小值之和，cv=0，表示是一个可行个体
+        # difference.append(max(0, individual.min_center_distance / constraint_thresholds['min_center_distance']))
+        cv = sum(difference) / 2  # 求0和cv中的最小值之和，cv=0，表示是一个可行个体
         individual.fitness.cv = cv  # 将cv值保存在个体中
         return cv
 
@@ -357,13 +114,6 @@ class DSSMOTE_P_A:
         pset.addPrimitive(operator.add, 2)
         pset.addPrimitive(operator.sub, 2)
         pset.addPrimitive(operator.mul, 2)
-        # 添加向量生成函数作为基元（不是终端！）
-        # pset.addPrimitive(lambda: np.random.uniform(-1, 1, self.X.shape[1]), 0, name="rand_vec")
-
-        # # 重命名参数
-        # pset.renameArguments(ARG0='x')
-        # pset.addPrimitive(protectedDiv, 2)
-
         # pset.addEphemeralConstant("rand101", ephemeral=lambda: np.random.uniform(0, 1))
         # pset.addEphemeralConstant("rand101", ephemeral=lambda: np.random.uniform(-1, 1, self.X.shape[1]))
         # pset.addEphemeralConstant("rand101", partial(np.random.uniform, 0, 1))
@@ -419,28 +169,19 @@ class DSSMOTE_P_A:
         self.get_feasible_infeasible(population, constraint_thresholds)  # 得到可行个体与不可行个体
 
         # 进化搜索
+        cv_list = []
         print('########### \t Start the evolution! \t ##########')
         for gen in range(0, self.parameter.NGEN):
             parent = self.toolbox.selTournament(population, self.parameter.POPSIZE)  # 选择父本
             offspring = varAnd(parent, self.toolbox, self.parameter.CXPB, self.parameter.MUTPB)  # 交叉、变异
             self.toolbox.evaluate(offspring)  # 评估变异后父本
 
-            # for ind_p,ind_o in zip(parent,offspring):
-            #     ind_p_str=str(ind_p)
-            #     print('亲本',ind_p_str)
-            #     ind_o_str=str(ind_o)
-            #     print('子代', ind_o_str)
-            #     print('##########')
-            #
-            #     if ind_p_str==ind_o_str:
-            #         print('重复个体：', ind_p_str)
+            mixed_pop = population + offspring
 
-            population = population + offspring
+            mixed_pop = remove_duplicate_individuals(mixed_pop)
+            # print('重复个体数：', self.parameter.POPSIZE * 2 - len(mixed_pop))
 
-            population = remove_duplicate_individuals(population)
-            # print('重复个体数：', self.parameter.POPSIZE * 2 - len(population))
-
-            while len(population) < self.parameter.POPSIZE:
+            while len(mixed_pop) < self.parameter.POPSIZE:
                 for i in range(self.parameter.POPSIZE - len(population)):
                     ind = self.toolbox.individual()
                     self.toolbox.evaluate(ind)
@@ -462,7 +203,8 @@ class DSSMOTE_P_A:
                 population = feasible_pop + infeasible_pop[
                                             :self.parameter.POPSIZE - len(
                                                 feasible_pop)]  # 加入不可行个体中违约程度小的个体，保证pop数量为POPSIZE
-            print(f'第{gen}代平均约束值', calculate_mean_inndividuals_cv(population, constraint_thresholds))
+            # print(f'第{gen}代平均约束值', calculate_mean_inndividuals_cv(population, constraint_thresholds))
+            cv_list.append(population[0].fitness.cv)
             # print('第一个个体的cv值：', population[0].fitness.cv)
             # 更新记录
             record = stats.compile(population)
