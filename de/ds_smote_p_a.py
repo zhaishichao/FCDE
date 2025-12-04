@@ -176,7 +176,7 @@ def selTournamentNDCD(individuals, k, tournsize):
 
 def selTournament_cv(individuals, k):
     chosen = []
-    for i in range(k):
+    while len(chosen) < k:
         aspirants = tools.selRandom(individuals, 2)  # 随机选择tournsize个个体
         # print(f'亲本1：', aspirants[0], '亲本2：', aspirants[1])
         if aspirants[0].fitness.cv == 0 and aspirants[1].fitness.cv > 0:
@@ -190,6 +190,8 @@ def selTournament_cv(individuals, k):
                 chosen.append(aspirants[1])
         else:
             chosen.append(aspirants[0])
+        if len(chosen)>1 and str(chosen[-1])==str(chosen[-2]):
+            chosen.remove(-1)
     return chosen
 
 
