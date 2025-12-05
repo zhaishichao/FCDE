@@ -5,7 +5,7 @@ import warnings
 warnings.filterwarnings("ignore")  # 忽略警告
 
 file_path = '../datasets/dat/'
-save_path = './tsne_results_1204_p_a/'
+save_path = './tsne_results_1204_p_a222/'
 datasetnames = ['iris0', 'ecoli1', 'glass0', 'glass1', 'haberman', 'pima', 'segment0', 'vowel0', 'wisconsin', 'yeast1']
 # datasetnames = ['pima', 'segment0', 'vowel0', 'wisconsin', 'yeast1']
 if __name__ == '__main__':

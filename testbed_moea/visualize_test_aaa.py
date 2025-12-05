@@ -48,3 +48,4 @@ if __name__ == '__main__':
         X_tsne_resampled_p_a = tsne_visualization_binary(scaler.fit_transform(X_train_resampled), y_train_resampled,
                                                          save_path=save_path + datasetname,
                                                          filename=datasetname + '_dgaaa', perplexity=30)
+        dgpa.curve_fitting(save_path + datasetname + '/','aaa')

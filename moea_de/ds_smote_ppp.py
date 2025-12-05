@@ -9,7 +9,7 @@ from deap.tools import selRandom, selTournamentDCD, selNSGA2, selTournament
 
 from moea_de.operator import sample_and_center, calculate_k_min_distances_mean, minority_class_proportion, \
     selTournament_cv, cosine_angle, calculate_statistics_inndividuals, remove_duplicate_individuals, \
-    calculate_mean_inndividuals_cv
+    calculate_mean_inndividuals_cv, curve_fitting
 
 
 class DSSMOTE_PPP:
@@ -24,6 +24,7 @@ class DSSMOTE_PPP:
         # 计算少数类中的平均最小距离
         self.mean_min_distance = calculate_k_min_distances_mean(self.min_samples, k=5)
         self.pset, self.toolbox = self.init_toolbox()
+        self.cv_list = []
 
     ####################**********数据预处理**********####################
 
@@ -169,18 +170,19 @@ class DSSMOTE_PPP:
         self.get_feasible_infeasible(population, constraint_thresholds)  # 得到可行个体与不可行个体
 
         # 进化搜索
+        cv_list = []
         print('########### \t Start the evolution! \t ##########')
         for gen in range(0, self.parameter.NGEN):
             parent = self.toolbox.selTournament(population, self.parameter.POPSIZE)  # 选择父本
             offspring = varAnd(parent, self.toolbox, self.parameter.CXPB, self.parameter.MUTPB)  # 交叉、变异
             self.toolbox.evaluate(offspring)  # 评估变异后父本
 
-            mixed_pop = population + offspring
+            population = population + offspring
 
-            mixed_pop = remove_duplicate_individuals(mixed_pop)
-            print('重复个体数：', self.parameter.POPSIZE * 2 - len(mixed_pop))
+            population = remove_duplicate_individuals(population)
+            # print('重复个体数：', self.parameter.POPSIZE * 2 - len(mixed_pop))
 
-            while len(mixed_pop) < self.parameter.POPSIZE:
+            while len(population) < self.parameter.POPSIZE:
                 for i in range(self.parameter.POPSIZE - len(population)):
                     ind = self.toolbox.individual()
                     self.toolbox.evaluate(ind)
@@ -202,7 +204,11 @@ class DSSMOTE_PPP:
                 population = feasible_pop + infeasible_pop[
                                             :self.parameter.POPSIZE - len(
                                                 feasible_pop)]  # 加入不可行个体中违约程度小的个体，保证pop数量为POPSIZE
-            print(f'第{gen}代平均约束值', calculate_mean_inndividuals_cv(population, constraint_thresholds))
+            # print(f'第{gen}代平均约束值', calculate_mean_inndividuals_cv(population, constraint_thresholds))
+            mean_list = []
+            for individual in population:
+                mean_list.append(individual.fitness.cv)
+            cv_list.append(np.mean(mean_list))
             # print('第一个个体的cv值：', population[0].fitness.cv)
             # 更新记录
             record = stats.compile(population)
@@ -234,6 +240,9 @@ class DSSMOTE_PPP:
             synthesis_instances.append(synthesis_instance)
 
         print('前沿中个体数：', len(pareto_fronts[0]), '合成实例数：', len(inds_syn), '可行解数量：', len(feasible_pop))
+
+        self.cv_list = cv_list
+
         return synthesis_instances
 
     # 7. 获取合成实例
@@ -265,3 +274,6 @@ class DSSMOTE_PPP:
         X_resampled_synthes = np.array(synthesis_instance[0])
         y_resampled_synthes = np.array(synthesis_instance[1])
         return X_resampled_synthes, y_resampled_synthes
+
+    def curve_fitting(self, file_path,filename):
+        curve_fitting(self.cv_list, file_path,filename)

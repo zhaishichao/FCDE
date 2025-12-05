@@ -5,9 +5,9 @@ import warnings
 warnings.filterwarnings("ignore")  # 忽略警告
 
 file_path = '../datasets/dat/'
-save_path = './tsne_results_1204_p_a/'
+save_path = './tsne_results_1204_p_a222/'
 datasetnames = ['iris0', 'ecoli1', 'glass0', 'glass1', 'haberman', 'pima', 'segment0', 'vowel0', 'wisconsin', 'yeast1']
-# datasetnames = ['pima', 'segment0', 'vowel0', 'wisconsin', 'yeast1']
+# datasetnames = ['ecoli1']
 if __name__ == '__main__':
     for datasetname in datasetnames:
         X, y = data_loader(file_path + datasetname + '.dat')
@@ -30,11 +30,11 @@ if __name__ == '__main__':
 
         from config import EvolutionaryParameterConfig
 
-        from moea_de import DSSMOTE_PPP
+        from moea_de import DSSMOTE_AAA
 
         evol_parameter = EvolutionaryParameterConfig(30, 0.8, 0.2, 100, False)
 
-        dgpa = DSSMOTE_PPP(X=X_train, y=y_train, evol_parameter=evol_parameter)
+        dgpa = DSSMOTE_AAA(X=X_train, y=y_train, evol_parameter=evol_parameter)
         X_syn, y_syn = dgpa.fit_resample_synthesis_only()
 
         print(X_syn)
@@ -47,5 +47,5 @@ if __name__ == '__main__':
         # 4. 使用t-SNE进行降维
         X_tsne_resampled_p_a = tsne_visualization_binary(scaler.fit_transform(X_train_resampled), y_train_resampled,
                                                          save_path=save_path + datasetname,
-                                                         filename=datasetname + '_dgppp', perplexity=30)
-        dgpa.curve_fitting(save_path + datasetname + '/','ppp')
+                                                         filename=datasetname + '_dgaaa', perplexity=30)
+        dgpa.curve_fitting(save_path + datasetname + '/','aaa')
