@@ -1,3 +1,6 @@
+from typing import Union, List
+from collections import Counter
+
 import numpy as np
 
 
@@ -63,3 +66,75 @@ def calculate_ave_max_distance(X, k):
     center = np.mean(X, axis=0)
     distances = np.linalg.norm(X - center, axis=1)
     return np.mean(np.partition(distances, -k)[-k:])
+
+
+# 计算k个最短距离的实例中，少数类的占比
+def minority_class_proportion(x: Union[List, np.ndarray],
+                              y: Union[List, np.ndarray],
+                              x_new: Union[List, np.ndarray],
+                              k: int) -> float:
+    """
+    计算新实例在k近邻中少数类所占的比例
+
+    参数:
+    x: 特征数据，形状为(n_samples, n_features)
+    y: 标签数据，形状为(n_samples,)，一般为2分类（0或1）
+    x_new: 新实例的特征数据，形状为(n_features,)
+    k: 近邻数量
+
+    返回:
+    float: 少数类在k近邻中所占的比例
+    """
+
+    # 转换为numpy数组以便处理
+    x = np.array(x)
+    y = np.array(y)
+    x_new = np.array(x_new)
+
+    # 参数检查
+    if len(x) != len(y):
+        raise ValueError("特征数据x和标签y的长度必须相同")
+
+    if len(x) == 0:
+        raise ValueError("输入数据不能为空")
+
+    if k <= 0 or k > len(x):
+        raise ValueError(f"k值必须在1到{len(x)}之间")
+
+    # 确定少数类
+    class_counts = Counter(y)
+    if len(class_counts) != 2:
+        raise ValueError("目前只支持2分类问题")
+
+    minority_class = min(class_counts, key=class_counts.get)
+
+    # 计算欧式距离
+    distances = []
+    for i, sample in enumerate(x):
+        # 计算x_new与每个样本之间的欧式距离
+        distance = np.sqrt(np.sum((sample - x_new) ** 2))
+        distances.append((distance, y[i]))
+
+    # 根据距离排序
+    distances.sort(key=lambda x: x[0])
+
+    # 获取前k个最近邻的标签
+    k_nearest_labels = [label for _, label in distances[:k]]
+
+    # 计算少数类的比例
+    minority_count = k_nearest_labels.count(minority_class)
+    proportion = minority_count / k
+
+    return proportion, distances[0][0]
+
+
+def calculate_cosine_angle(a, b):
+    if np.linalg.norm(a) == 0 or np.linalg.norm(b) == 0:
+        return np.degrees(np.arccos(-1))
+    cos = np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+    if cos > 1:
+        cos = 1
+    if cos < -1:
+        cos = -1
+
+    return np.degrees(np.arccos(cos))

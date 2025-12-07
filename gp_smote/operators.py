@@ -20,3 +20,15 @@ def selTournament_cv(individuals, k):
         if len(chosen) > 1 and str(chosen[-1]) == str(chosen[-2]):
             chosen.pop()
     return chosen
+
+
+
+def remove_duplicate_individuals(individuals):
+    seen = set()
+    result = []
+    for ind in individuals:
+        key = str(ind)
+        if key not in seen:
+            seen.add(key)
+            result.append(ind)
+    return result
