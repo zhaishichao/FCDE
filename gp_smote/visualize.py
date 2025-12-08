@@ -135,5 +135,4 @@ def curve_fitting(list_cv, file_path, filename):
     full_path = os.path.join(file_path, f"{filename}.png")
     # 保存图形
     plt.savefig(full_path, dpi=300, bbox_inches='tight', facecolor='white')
-    # # 显示图形
-    # plt.show()
+    plt.close()  # 关闭图形，避免在内存中积累

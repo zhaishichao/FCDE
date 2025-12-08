@@ -12,6 +12,7 @@ file_path = '../datasets/dat/'
 save_path = './tsne_results_1208/'
 datasetnames = ['iris0', 'ecoli1', 'glass0', 'glass1', 'haberman', 'pima', 'segment0', 'vowel0', 'wisconsin', 'yeast1','shuttle-c0-vs-c4']
 datasetnames = ['glass0', 'glass1', 'haberman', 'pima', 'segment0', 'vowel0']
+datasetnames = ['australian', 'german','heart', 'phoneme', 'ring', 'spambase', 'twonorm']
 if __name__ == '__main__':
     for datasetname in datasetnames:
         X, y = data_loader(file_path + datasetname + '.dat')
