@@ -2,7 +2,7 @@ import pandas as pd
 
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder
 
 
 def data_loader(file_path):
@@ -12,8 +12,22 @@ def data_loader(file_path):
     # 假设 df 是你的 DataFrame，最后一列是标签
     # 分离特征和标签
     pd.set_option('future.no_silent_downcasting', True)
-    X = df.iloc[:, :-1].values                   # ndarray 格式
-    y = df.iloc[:, -1].str.strip().replace({'negative': 0, 'positive': 1}).values
+    X = df.iloc[:, :-1].values
+    if type(df.iloc[:, -1][0]) == str:
+    # ndarray 格式
+        y = df.iloc[:, -1].str.strip().replace({'negative': 0, 'positive': 1}).values
+    else:
+        y = df.iloc[:, -1].values
+
+    # 检查y中是否包含字符串
+    contains_string = any(isinstance(val, str) for val in y[:min(10, len(y))])
+    # 检查y是否已经是0-1编码
+    unique_vals = np.unique(y)
+    is_binary_01 = len(unique_vals) == 2 and set(unique_vals) == {0, 1}
+    if contains_string or not is_binary_01:
+        # 使用LabelEncoder对标签进行编码
+        label_encoder = LabelEncoder()
+        y = label_encoder.fit_transform(y)
     return X, y
 
 def data_preprocess(X, y, standard=False, normalize=False, random_state=42):
