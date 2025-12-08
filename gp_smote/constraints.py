@@ -38,7 +38,7 @@ def cv(individual, thresholds):
 
 
 # 分离可行解与不可行解
-def get_feasible_infeasible(self, pop, thresholds):
+def get_feasible_infeasible(pop, thresholds):
     '''
     :param pop: 种群
     :param constraints: 约束阈值

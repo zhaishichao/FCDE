@@ -1,17 +1,12 @@
-import operator
-from operator import attrgetter
-
 import numpy as np
-from deap import base, creator, tools, gp
+from deap import tools
 from deap.algorithms import varAnd
-from deap.tools import selNSGA2
-
 from .constraints import calculate_constraint_thresholds, get_feasible_infeasible
 from .data_preprocess import separate_maj_min, random_sampling, calculate_center, calculate_ave_max_distance, \
     minority_class_proportion, calculate_cosine_angle
 from .initialization import init_toolbox
 
-from .operators import remove_duplicate_individuals
+from .operators import remove_duplicate_individuals, selTournament_cv
 from .visualize import curve_fitting
 
 
@@ -28,9 +23,12 @@ class DSSMOTE:
         self.min_center = None  # 少数类中心点
         self.X_samples = None  # 采样得到的特征
         self.y_samples = None  # 采样得到的标签
-
         self.ave_max_distance = None  # 少数类中心的平均最大距离
+
         self.pset, self.toolbox = init_toolbox(len(self.data['min_x']))
+        self.toolbox.register("evaluate", self.evaluate)
+        self.toolbox.register("selTournament", selTournament_cv)
+
         self.cv_list = []
 
     # 评估个体
@@ -55,12 +53,9 @@ class DSSMOTE:
                 individual.cosine_angle = calculate_cosine_angle(self.maj_center - self.min_center,
                                                                  new_instance - self.min_center)
 
-                # 计算平均最小距离
+                # 计算离少数类中心的距离
                 dis = np.linalg.norm(self.min_center - new_instance)
                 individual.min_center_distance = dis - self.ave_max_distance
-
-    ####################**********GP进化合成实例**********####################
-    # 5. 初始化toolbox
 
     # 6. 进化
     def evolutionary(self):
@@ -69,13 +64,14 @@ class DSSMOTE:
         self.maj_samples = random_sampling(self.data['maj_x'])  # 随机采样多数类样本
         self.maj_center = calculate_center(self.maj_samples)  # 多数类中心点
         self.min_samples = random_sampling(self.data['min_x'])  # 随机采样少数类样本
-        self.min_center = calculate_center(self.maj_samples)  # 少数类中心点
+        self.min_center = calculate_center(self.min_samples)  # 少数类中心点
         self.X_samples = np.concatenate([self.maj_samples, self.min_samples], axis=0)  # 合并特征
         maj_samples_y = np.array([self.data['maj_y'][0] for _ in range(len(self.maj_samples))])
         min_samples_y = np.array([self.data['min_y'][0] for _ in range(len(self.min_samples))])
         self.y_samples = np.concatenate([maj_samples_y, min_samples_y], axis=0)  # 合并标签
 
-        self.ave_max_distance = calculate_ave_max_distance(self.min_samples, k=5)  # 计算与少数类中心的平均最大距离
+        self.ave_max_distance = calculate_ave_max_distance(self.min_samples,
+                                                           k=len(self.min_samples) // 5)  # 计算与少数类中心的平均最大距离
 
         # 初始化种群
         population = self.toolbox.population(n=self.parameter.POPSIZE)
@@ -120,10 +116,10 @@ class DSSMOTE:
             cv_list.append(np.mean([ind.fitness.cv for ind in population]))
 
         # 最后一代种群
-        feasible_pop, infeasible_pop = self.get_feasible_infeasible(population, thresholds)  # 得到可行个体与不可行个体
+        feasible_pop, infeasible_pop = get_feasible_infeasible(population, thresholds)  # 得到可行个体与不可行个体
         pareto_fronts = [[]]
         if len(feasible_pop) == 0:
-            inds_syn = infeasible_pop[:10 - len(feasible_pop)]
+            inds_syn = infeasible_pop[:10]
         else:
             pareto_fronts = tools.sortNondominated(feasible_pop, len(feasible_pop), first_front_only=True)
             inds_syn = pareto_fronts[0]
