@@ -111,7 +111,7 @@ def tsne_visualization_binary(X, y, save_path, filename,
 
 
 # 绘制收敛曲线
-def curve_fitting(list_cv, file_path, filename):
+def curve_fitting(list_cv, file_path, filename, title):
     # 你的收敛曲线数据（这里用示例数据，请替换为你的实际数据）
 
     # 创建图形
@@ -124,7 +124,7 @@ def curve_fitting(list_cv, file_path, filename):
     # 设置图形属性
     plt.xlabel('Generation', fontsize=12)
     plt.ylabel('cv', fontsize=12)
-    plt.title('Convergence curve', fontsize=14, fontweight='bold')
+    plt.title('Convergence curve for ' + title, fontsize=14, fontweight='bold')
     plt.grid(True, alpha=0.3)
     plt.legend()
 

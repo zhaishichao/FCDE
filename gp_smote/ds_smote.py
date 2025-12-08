@@ -170,5 +170,5 @@ class DSSMOTE:
         y_resampled_synthes = np.array(synthesis_instance[1])
         return X_resampled_synthes, y_resampled_synthes
 
-    def curve_fitting(self, file_path, filename):
-        curve_fitting(self.cv_list, file_path, filename)
+    def curve_fitting(self, file_path, filename, title):
+        curve_fitting(self.cv_list, file_path, filename, title)
