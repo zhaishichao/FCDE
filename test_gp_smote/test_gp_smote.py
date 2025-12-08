@@ -9,10 +9,10 @@ import warnings
 warnings.filterwarnings("ignore")  # 忽略警告
 
 file_path = '../datasets/dat/'
-save_path = './tsne_results_1208/'
-datasetnames = ['iris0', 'ecoli1', 'glass0', 'glass1', 'haberman', 'pima', 'segment0', 'vowel0', 'wisconsin', 'yeast1','shuttle-c0-vs-c4']
-datasetnames = ['glass0', 'glass1', 'haberman', 'pima', 'segment0', 'vowel0']
-datasetnames = ['australian', 'german','heart', 'phoneme', 'ring', 'spambase', 'twonorm']
+save_path = 'datasets_t-sne_visualize/'
+datasetnames = ['iris0', 'ecoli1', 'glass0', 'glass1', 'haberman', 'pima', 'segment0', 'vowel0', 'wisconsin', 'yeast1',
+                'shuttle-c0-vs-c4', 'australian', 'german', 'heart', 'phoneme', 'ring', 'spambase', 'twonorm', 'wdbc',
+                'ionosphere']
 if __name__ == '__main__':
     for datasetname in datasetnames:
         X, y = data_loader(file_path + datasetname + '.dat')
@@ -40,4 +40,4 @@ if __name__ == '__main__':
         X_tsne_resampled_p_a = tsne_visualization_binary(X_train_resampled, y_train_resampled,
                                                          save_path=save_path + datasetname,
                                                          filename=datasetname + '_dss', perplexity=30)
-        dss.curve_fitting(save_path + datasetname + '/', 'evolutionary')
+        dss.curve_fitting(save_path + datasetname + '/', 'convergence_curve', datasetname)

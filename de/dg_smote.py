@@ -182,7 +182,7 @@ class DGSMOTE:
 
         # 初始化toolbox
         toolbox = base.Toolbox()
-        toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=3)
+        toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=5)
         toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
         toolbox.register("compile", gp.compile, pset=pset)
