@@ -82,7 +82,7 @@ class DSSMOTE:
 
         # 进化搜索
         cv_list = []  # 存储约束违反程度（用于绘制收敛曲线）
-        print('########### \t Start the evolution! \t ##########')
+        # print('########### \t Start the evolution! \t ##########')
         for gen in range(0, self.parameter.NGEN):
             parent = self.toolbox.selTournament(population, self.parameter.POPSIZE)  # 选择父本
             offspring = varAnd(parent, self.toolbox, self.parameter.CXPB, self.parameter.MUTPB)  # 交叉、变异
@@ -119,22 +119,22 @@ class DSSMOTE:
         feasible_pop, infeasible_pop = get_feasible_infeasible(population, thresholds)  # 得到可行个体与不可行个体
         pareto_fronts = [[]]
         if len(feasible_pop) == 0:
-            inds_syn = infeasible_pop[:10]
+            inds_syn = infeasible_pop[:5]
         else:
             pareto_fronts = tools.sortNondominated(feasible_pop, len(feasible_pop), first_front_only=True)
             inds_syn = pareto_fronts[0]
-            if len(inds_syn) < 10:
-                if len(feasible_pop) >= 10:
-                    inds_syn = self.toolbox.select(feasible_pop, 10)
+            if len(inds_syn) < 5:
+                if len(feasible_pop) >= 5:
+                    inds_syn = self.toolbox.select(feasible_pop, 5)
                 else:
-                    inds_syn = feasible_pop + infeasible_pop[:10 - len(feasible_pop)]
+                    inds_syn = feasible_pop + infeasible_pop[:5 - len(feasible_pop)]
         synthesis_instances = []
         for ind in inds_syn:
             func = self.toolbox.compile(expr=ind)
             synthesis_instance = func(*self.data['min_x'])
             synthesis_instances.append(synthesis_instance)
 
-        print('可行解数量：', len(feasible_pop), '前沿中个体数：', len(pareto_fronts[0]), '合成实例数：', len(inds_syn))
+        # print('可行解数量：', len(feasible_pop), '前沿中个体数：', len(pareto_fronts[0]), '合成实例数：', len(inds_syn))
 
         self.cv_list = cv_list
 
@@ -147,7 +147,7 @@ class DSSMOTE:
         index = 1
         total_syn = len(self.data['maj_y']) - len(self.data['min_y'])
         while curr_syn < total_syn:
-            print('第', index, '轮合成')
+            # print('第', index, '轮合成')
             syn = self.evolutionary()
             X_syn = X_syn + syn
             curr_syn = curr_syn + len(syn)
