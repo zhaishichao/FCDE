@@ -50,17 +50,19 @@ class DSSMOTE:
 
                 # 计算与所有少数类（包括新合成的实例）的最小距离
                 # （第一个约束：新实例与所有的少数类的最小距离大于DIS，依据DIS的值来控制实例的离散程度）
-                individual.minimum_distance = calculate_min_distance(self.min_samples_and_synthesis, new_instance)
+                individual.distance_minority_min = calculate_min_distance(self.min_samples_and_synthesis, new_instance)
+
+                # 计算离少数类中心的距离
+                # （第三个约束：新实例与少数类中心的距离，要小于离少数类中心最远的距离）
+                distance_minority_center = np.linalg.norm(self.min_center - new_instance)
+                individual.distance_minority_center = distance_minority_center - self.ave_max_distance
 
                 # 计算角度 maj_center - min_center表示一条从少数类中心到多数类中心的向量
-                # （第三个约束：新实例与多数类中心、少数类中心的夹角小于90°）
+                # （第四个约束：新实例与多数类中心、少数类中心的夹角小于90°）
                 individual.cosine_angle = calculate_cosine_angle(self.maj_center - self.min_center,
                                                                  new_instance - self.min_center)
 
-                # 计算离少数类中心的距离
-                # （第四个约束：新实例与少数类中心的距离，要小于离少数类中心最远的距离）
-                dis = np.linalg.norm(self.min_center - new_instance)
-                individual.min_center_distance = dis - self.ave_max_distance
+
 
     # 6. 进化
     def evolutionary(self):
@@ -139,7 +141,7 @@ class DSSMOTE:
             synthesis_instance = func(*self.data['min_x'])
             synthesis_instances.append(synthesis_instance)
 
-        # print('可行解数量：', len(feasible_pop), '前沿中个体数：', len(pareto_fronts[0]), '合成实例数：', len(inds_syn))
+        print('可行解数量：', len(feasible_pop), '前沿中个体数：', len(pareto_fronts[0]), '合成实例数：', len(inds_syn))
 
         self.cv_list = cv_list
 
@@ -152,7 +154,7 @@ class DSSMOTE:
         index = 1
         total_syn = len(self.data['maj_y']) - len(self.data['min_y'])
         while curr_syn < total_syn:
-            # print('第', index, '轮合成')
+            print('第', index, '轮合成')
             syn = self.evolutionary()
             self.min_samples_and_synthesis = np.vstack((self.min_samples_and_synthesis, syn))
             X_syn = X_syn + syn
