@@ -41,20 +41,24 @@ class DSSMOTE:
                 # 计算当前实例与多数类和少数类中心的欧氏距离
                 maj_dis = np.linalg.norm(self.maj_center - new_instance)
                 min_dis = np.linalg.norm(self.min_center - new_instance)
-                # 评估新实例与多数类和少数类的距离
+                # 评估新实例与多数类和少数类的距离 （第一个目标）
                 maj_min_dis = maj_dis - min_dis
-                # 计算少数类的比例
-
+                # 计算少数类的比例 （第二个目标）
                 proportion, _ = minority_class_proportion(self.X_samples, self.y_samples, new_instance,
                                                                          len(self.min_samples))
                 individual.fitness.values = (maj_min_dis, proportion)
+
+                # 计算与所有少数类（包括新合成的实例）的最小距离
+                # （第一个约束：新实例与所有的少数类的最小距离大于DIS，依据DIS的值来控制实例的离散程度）
                 individual.minimum_distance = calculate_min_distance(self.min_samples_and_synthesis, new_instance)
 
                 # 计算角度 maj_center - min_center表示一条从少数类中心到多数类中心的向量
+                # （第三个约束：新实例与多数类中心、少数类中心的夹角小于90°）
                 individual.cosine_angle = calculate_cosine_angle(self.maj_center - self.min_center,
                                                                  new_instance - self.min_center)
 
                 # 计算离少数类中心的距离
+                # （第四个约束：新实例与少数类中心的距离，要小于离少数类中心最远的距离）
                 dis = np.linalg.norm(self.min_center - new_instance)
                 individual.min_center_distance = dis - self.ave_max_distance
 

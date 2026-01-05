@@ -11,7 +11,6 @@ def calculate_constraint_thresholds(individuals):
     返回:
     tuple -- (max_a, max_b, max_c, max_d)
     """
-
     max_minimum_distance = max(-ind.minimum_distance for ind in individuals)
     if max_minimum_distance == 0: # 避免实例重合
         max_minimum_distance = 1
