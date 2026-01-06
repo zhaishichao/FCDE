@@ -154,3 +154,18 @@ def calculate_cosine_angle(a, b):
         cos = -1
 
     return np.degrees(np.arccos(cos))
+
+# 计算X中实例之间的平均距离
+def compute_avg_distance(X):
+    X = np.asarray(X)
+    n = X.shape[0]
+
+    # 计算 (xi - xj)^2
+    diff = X[:, None, :] - X[None, :, :]
+    dist_matrix = np.sqrt(np.sum(diff ** 2, axis=2))
+
+    # 只取上三角（去掉对角线）
+    i, j = np.triu_indices(n, k=1)
+    avg_dis = dist_matrix[i, j].mean()
+
+    return avg_dis

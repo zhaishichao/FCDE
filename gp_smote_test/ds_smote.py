@@ -3,7 +3,7 @@ from deap import tools
 from deap.algorithms import varAnd
 from .constraints import calculate_constraint_thresholds, get_feasible_infeasible
 from .data_preprocess import separate_maj_min, random_sampling, calculate_center, calculate_ave_max_distance, \
-    minority_class_proportion, calculate_cosine_angle, calculate_min_distance
+    minority_class_proportion, calculate_cosine_angle, calculate_min_distance, compute_avg_distance
 from .initialization import init_toolbox
 
 from .operators import remove_duplicate_individuals, selTournament_cv
@@ -20,11 +20,12 @@ class DSSMOTE:
         self.maj_samples = None  # 随机采样多数类样本
         self.maj_center = None  # 多数类中心点
         self.min_samples = None  # 随机采样少数类样本
-        self.min_samples_and_synthesis = self.data['min_x'] # 少数类样本和少数类合成样本
+        self.min_samples_and_synthesis = self.data['min_x']  # 少数类样本和少数类合成样本
         self.min_center = None  # 少数类中心点
         self.X_samples = None  # 采样得到的特征
         self.y_samples = None  # 采样得到的标签
         self.ave_max_distance = None  # 少数类中心的平均最大距离
+        self.min_avg_distance = compute_avg_distance(self.data['min_x']) / 2  # 少数类实例间的平均距离
 
         self.pset, self.toolbox = init_toolbox(len(self.data['min_x']))
         self.toolbox.register("evaluate", self.evaluate)
@@ -45,7 +46,7 @@ class DSSMOTE:
                 maj_min_dis = maj_dis - min_dis
                 # 计算少数类的比例 （第二个目标）
                 proportion, _ = minority_class_proportion(self.X_samples, self.y_samples, new_instance,
-                                                                         len(self.min_samples))
+                                                          len(self.min_samples))
                 individual.fitness.values = (maj_min_dis, proportion)
 
                 # 计算与所有少数类（包括新合成的实例）的最小距离
@@ -61,8 +62,6 @@ class DSSMOTE:
                 # （第四个约束：新实例与多数类中心、少数类中心的夹角小于90°）
                 individual.cosine_angle = calculate_cosine_angle(self.maj_center - self.min_center,
                                                                  new_instance - self.min_center)
-
-
 
     # 6. 进化
     def evolutionary(self):
@@ -84,7 +83,7 @@ class DSSMOTE:
         population = self.toolbox.population(n=self.parameter.POPSIZE)
         self.toolbox.evaluate(population)  # 评估初始种群
 
-        thresholds = calculate_constraint_thresholds(population)  # 计算初始种群的最大约束违反程度
+        thresholds = calculate_constraint_thresholds(population, self.min_avg_distance)  # 计算初始种群的最大约束违反程度
         get_feasible_infeasible(population, thresholds)  # 得到可行个体与不可行个体
 
         # 进化搜索
