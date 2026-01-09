@@ -116,8 +116,6 @@ class DSSMOTE:
             else:
                 population = feasible_pop + infeasible_pop[:self.parameter.POPSIZE - len(
                     feasible_pop)]  # 加入不可行个体中违约程度小的个体，保证pop数量为POPSIZE
-
-            # print(f'第{gen}代平均约束值', calculate_mean_inndividuals_cv(population, thresholds))
             # 记录一下约束值去的变化
             cv_list.append(np.mean([ind.fitness.cv for ind in population]))
 
@@ -139,8 +137,6 @@ class DSSMOTE:
             func = self.toolbox.compile(expr=ind)
             synthesis_instance = func(*self.data['min_x'])
             synthesis_instances.append(synthesis_instance)
-
-        print('可行解数量：', len(feasible_pop), '前沿中个体数：', len(pareto_fronts[0]), '合成实例数：', len(inds_syn))
 
         self.cv_list = cv_list
 
