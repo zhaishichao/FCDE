@@ -1,16 +1,13 @@
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 
 from metric import fit_pred, metric
 from sklearn.utils import shuffle
 import pandas as pd
 import os
-from de import DGSMOTE
+from smote.dg_smote import DGSMOTE
 from data_preprocess import data_loader, data_preprocess
-from visualize import tsne_visualization_binary
 from config import EvolutionaryParameterConfig
-from gp_smote import DSSMOTE
-import numpy as np
+from smote.gp_smote_c3 import DSSMOTE
 import warnings
 from sklearn import clone
 

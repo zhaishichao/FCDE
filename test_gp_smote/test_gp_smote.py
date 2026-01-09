@@ -1,8 +1,7 @@
 from data_preprocess import data_loader, data_preprocess
-from sklearn.preprocessing import StandardScaler
 from visualize import tsne_visualization_binary
 from config import EvolutionaryParameterConfig
-from gp_smote import DSSMOTE
+from smote.gp_smote_c3 import DSSMOTE
 import numpy as np
 import warnings
 
