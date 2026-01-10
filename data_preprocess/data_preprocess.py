@@ -2,23 +2,31 @@ import pandas as pd
 
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder, OrdinalEncoder
 
 
 def data_loader(file_path):
-
-
-    df = pd.read_csv(file_path, comment='@', header=None) # 省略@开头的注释
+    df = pd.read_csv(file_path, comment='@', header=None)  # 省略@开头的注释
     # 假设 df 是你的 DataFrame，最后一列是标签
     # 分离特征和标签
     pd.set_option('future.no_silent_downcasting', True)
     X = df.iloc[:, :-1].values
+
+    # 对特征进行编码（主要针对str）
+    X_df = pd.DataFrame(X)  # 将DataFrame转换为DataFrame
+    cat_cols = X_df.select_dtypes(include=['object', 'string']).columns  # 获取所有object类型的列
+    # num_cols = X_df.select_dtypes(exclude=['object', 'string']).columns  # 获取所有非object类型的列
+    if len(cat_cols) > 0:
+        encoder = OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=-1)
+        X_df[cat_cols] = encoder.fit_transform(X_df[cat_cols])
+    X_enc = X_df.to_numpy(dtype=float)
+
+    # 对标签进行编码（主要针对str）
     if type(df.iloc[:, -1][0]) == str:
-    # ndarray 格式
+        # ndarray 格式
         y = df.iloc[:, -1].str.strip().replace({'negative': 0, 'positive': 1}).values
     else:
         y = df.iloc[:, -1].values
-
     # 检查y中是否包含字符串
     contains_string = any(isinstance(val, str) for val in y[:min(10, len(y))])
     # 检查y是否已经是0-1编码
@@ -28,10 +36,10 @@ def data_loader(file_path):
         # 使用LabelEncoder对标签进行编码
         label_encoder = LabelEncoder()
         y = label_encoder.fit_transform(y)
-    return X, y
+    return X_enc, y
+
 
 def data_preprocess(X, y, standard=False, normalize=False, random_state=42):
-
     # 划分数据集
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=random_state, stratify=y)
 
