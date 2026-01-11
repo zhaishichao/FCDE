@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore")  # 忽略警告
 
 # 保存路径
 file_path = '../datasets/dat/'
-save_path = './1215/knn/'
+save_path = 'results/1215/knn/'
 save_path_raw = save_path + 'raw/'
 save_path_dg = save_path + 'dg/'
 save_path_ds = save_path + 'ds/'

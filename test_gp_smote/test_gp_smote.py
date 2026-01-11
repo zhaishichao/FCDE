@@ -8,7 +8,7 @@ import warnings
 warnings.filterwarnings("ignore")  # 忽略警告
 
 file_path = '../datasets/dat/'
-save_path = 'datasets_t-sne_visualize/'
+save_path = 'results/datasets_t-sne_visualize/'
 datasetnames = ['iris0', 'ecoli1', 'glass0', 'glass1', 'haberman', 'pima', 'segment0', 'vowel0', 'wisconsin', 'yeast1',
                 'shuttle-c0-vs-c4', 'australian', 'german', 'heart', 'phoneme', 'ring', 'spambase', 'twonorm', 'wdbc']
 if __name__ == '__main__':
