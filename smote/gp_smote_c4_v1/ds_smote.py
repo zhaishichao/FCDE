@@ -149,13 +149,12 @@ class DSSMOTE:
         index = 1
         total_syn = len(self.data['maj_y']) - len(self.data['min_y'])
         while curr_syn < total_syn:
-            print('第', index, '轮合成')
             syn = self.evolutionary()
             self.min_samples_and_synthesis = np.vstack((self.min_samples_and_synthesis, syn))
             X_syn = X_syn + syn
             curr_syn = curr_syn + len(syn)
             index = index + 1
-
+        print(f'共计合成：{index}轮，合成数量为：{total_syn}')
         X_syn = X_syn[:total_syn]
         y_syn = [self.data['min_y'][0] for _ in range(len(X_syn))]
         return (X_syn, y_syn)
