@@ -143,7 +143,7 @@ class DSSMOTE:
             X_syn = X_syn + syn
             curr_syn = curr_syn + len(syn)
             index = index + 1
-        print(f'共计合成：{index}轮，合成数量为：{total_syn}')
+        print(f'共计合成：{index - 1}轮，合成数量为：{total_syn}')
         X_syn = X_syn[:total_syn]
         y_syn = [self.data['min_y'][0] for _ in range(len(X_syn))]
         return (X_syn, y_syn)

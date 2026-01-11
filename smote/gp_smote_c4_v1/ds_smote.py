@@ -121,7 +121,6 @@ class DSSMOTE:
 
         # 最后一代种群
         feasible_pop, infeasible_pop = get_feasible_infeasible(population, thresholds)  # 得到可行个体与不可行个体
-        pareto_fronts = [[]]
         if len(feasible_pop) == 0:
             inds_syn = infeasible_pop[:5]
         else:
@@ -154,7 +153,7 @@ class DSSMOTE:
             X_syn = X_syn + syn
             curr_syn = curr_syn + len(syn)
             index = index + 1
-        print(f'共计合成：{index}轮，合成数量为：{total_syn}')
+        print(f'共计合成：{index - 1}轮，合成数量为：{total_syn}')
         X_syn = X_syn[:total_syn]
         y_syn = [self.data['min_y'][0] for _ in range(len(X_syn))]
         return (X_syn, y_syn)
