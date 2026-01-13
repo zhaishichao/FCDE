@@ -3,7 +3,7 @@ from config import EvolutionaryParameterConfig
 
 datasetnames = ['iris0', 'ecoli1', 'glass0', 'glass1', 'haberman', 'pima', 'segment0', 'vowel0', 'wisconsin',
                 'yeast1', 'shuttle-c0-vs-c4', 'australian']
-num_run = 1
+num_run = 10
 
 POPSIZE = 30  # 种群大小
 CXPB = 0.8  # 交叉概率
