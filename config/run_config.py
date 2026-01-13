@@ -2,7 +2,9 @@
 from config import EvolutionaryParameterConfig
 
 datasetnames = ['iris0', 'ecoli1', 'glass0', 'glass1', 'haberman', 'pima', 'segment0', 'vowel0', 'wisconsin',
-                'yeast1', 'shuttle-c0-vs-c4', 'australian']
+                'yeast1', 'shuttle-c0-vs-c4', 'australian', 'heart', 'phoneme', 'ring', 'spambase', 'wdbc',
+                'vehicle2', 'abalone9-18', 'cleveland-0_vs_4', 'led7digit-0-2-4-5-6-7-8-9_vs_1', 'new-thyroid1',
+                'page-blocks0']
 num_run = 10
 
 POPSIZE = 30  # 种群大小

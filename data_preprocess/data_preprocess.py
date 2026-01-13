@@ -36,7 +36,8 @@ def data_loader(file_path):
         # 使用LabelEncoder对标签进行编码
         label_encoder = LabelEncoder()
         y = label_encoder.fit_transform(y)
-    return X_enc, y
+
+    return X_enc, y.astype(float)
 
 
 def data_preprocess(X, y, standard=False, normalize=False, random_state=42):

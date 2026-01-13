@@ -15,11 +15,11 @@ import warnings
 warnings.filterwarnings("ignore")  # 忽略警告
 
 # 保存路径
-save_path = '../results/resample/dt/'
+save_path = '../results/resample/svm/'
 save_path_raw = save_path + 'raw/'
 save_path_ros = save_path + 'ros/'
 save_path_smote = save_path + 'smote/'
-save_path_adasyn = save_path + 'adasyn/'
+# save_path_adasyn = save_path + 'adasyn/'
 save_path_borderline_1 = save_path + 'borderline_1/'
 save_path_borderline_2 = save_path + 'borderline_2/'
 # 检查目录是否存在，如果不存在则创建
@@ -31,8 +31,8 @@ if not os.path.exists(save_path_ros):
     os.makedirs(save_path_ros)
 if not os.path.exists(save_path_smote):
     os.makedirs(save_path_smote)
-if not os.path.exists(save_path_adasyn):
-    os.makedirs(save_path_adasyn)
+# if not os.path.exists(save_path_adasyn):
+#     os.makedirs(save_path_adasyn)
 if not os.path.exists(save_path_borderline_1):
     os.makedirs(save_path_borderline_1)
 if not os.path.exists(save_path_borderline_2):
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     df_mean_raw = pd.DataFrame(columns=columns_datasets)
     df_mean_ros = pd.DataFrame(columns=columns_datasets)
     df_mean_smote = pd.DataFrame(columns=columns_datasets)
-    df_mean_adasyn = pd.DataFrame(columns=columns_datasets)
+    # df_mean_adasyn = pd.DataFrame(columns=columns_datasets)
     df_mean_borderline_1 = pd.DataFrame(columns=columns_datasets)
     df_mean_borderline_2 = pd.DataFrame(columns=columns_datasets)
 
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         df_ds = pd.DataFrame(columns=columns_dataset)
         df_ros = pd.DataFrame(columns=columns_dataset)
         df_smote = pd.DataFrame(columns=columns_dataset)
-        df_adasyn = pd.DataFrame(columns=columns_dataset)
+        # df_adasyn = pd.DataFrame(columns=columns_dataset)
         df_borderline_1 = pd.DataFrame(columns=columns_dataset)
         df_borderline_2 = pd.DataFrame(columns=columns_dataset)
 
@@ -87,13 +87,13 @@ if __name__ == '__main__':
             result_smote = metric(y_test.astype('int'), y_pred, y_prob, scoring)
             df_smote.loc[i] = [result_smote['f1_macro'], result_smote['g_mean'], result_smote['roc_auc_ovr']]
 
-            # ADASYN
-            adasyn = ADASYN(random_state=42 + i)
-            X_resampled, y_resampled = adasyn.fit_resample(X_train, y_train)
-            y_pred, y_prob = fit_pred(X_resampled, y_resampled.astype('int'), X_test=X_test, clf=clone(clf),
-                                      soft_lable=True)
-            result_adasyn = metric(y_test.astype('int'), y_pred, y_prob, scoring)
-            df_adasyn.loc[i] = [result_adasyn['f1_macro'], result_adasyn['g_mean'], result_adasyn['roc_auc_ovr']]
+            # # ADASYN
+            # adasyn = ADASYN(random_state=42 + i,n_neighbors=3)
+            # X_resampled, y_resampled = adasyn.fit_resample(X_train, y_train)
+            # y_pred, y_prob = fit_pred(X_resampled, y_resampled.astype('int'), X_test=X_test, clf=clone(clf),
+            #                           soft_lable=True)
+            # result_adasyn = metric(y_test.astype('int'), y_pred, y_prob, scoring)
+            # df_adasyn.loc[i] = [result_adasyn['f1_macro'], result_adasyn['g_mean'], result_adasyn['roc_auc_ovr']]
 
             # Borderline-SMOTE-1
             borderline_smote = BorderlineSMOTE(random_state=42 + i)
@@ -117,25 +117,27 @@ if __name__ == '__main__':
         df_mean_ros.loc[index] = [datasetname, num_instances, num_features, df_ros['F-measure'].mean(),
                                   df_ros['G-mean'].mean(), df_ros['AUC'].mean()]
         df_mean_smote.loc[index] = [datasetname, num_instances, num_features, df_smote['F-measure'].mean(),
-                                     df_smote['G-mean'].mean(), df_smote['AUC'].mean()]
-        df_mean_adasyn.loc[index] = [datasetname, num_instances, num_features, df_adasyn['F-measure'].mean(),
-                                     df_adasyn['G-mean'].mean(), df_adasyn['AUC'].mean()]
-        df_mean_borderline_1.loc[index] = [datasetname, num_instances, num_features, df_borderline_1['F-measure'].mean(),
+                                    df_smote['G-mean'].mean(), df_smote['AUC'].mean()]
+        # df_mean_adasyn.loc[index] = [datasetname, num_instances, num_features, df_adasyn['F-measure'].mean(),
+        #                              df_adasyn['G-mean'].mean(), df_adasyn['AUC'].mean()]
+        df_mean_borderline_1.loc[index] = [datasetname, num_instances, num_features,
+                                           df_borderline_1['F-measure'].mean(),
                                            df_borderline_1['G-mean'].mean(), df_borderline_1['AUC'].mean()]
-        df_mean_borderline_2.loc[index] = [datasetname, num_instances, num_features, df_borderline_2['F-measure'].mean(),
+        df_mean_borderline_2.loc[index] = [datasetname, num_instances, num_features,
+                                           df_borderline_2['F-measure'].mean(),
                                            df_borderline_2['G-mean'].mean(), df_borderline_2['AUC'].mean()]
         # 保存结果到csv文件
         df_raw.to_csv(save_path_raw + datasetname + '.csv', encoding='utf_8_sig', index=False)
         df_ros.to_csv(save_path_ros + datasetname + '.csv', encoding='utf_8_sig', index=False)
         df_smote.to_csv(save_path_smote + datasetname + '.csv', encoding='utf_8_sig', index=False)
-        df_adasyn.to_csv(save_path_adasyn + datasetname + '.csv', encoding='utf_8_sig', index=False)
+        # df_adasyn.to_csv(save_path_adasyn + datasetname + '.csv', encoding='utf_8_sig', index=False)
         df_borderline_1.to_csv(save_path_borderline_1 + datasetname + '.csv', encoding='utf_8_sig', index=False)
         df_borderline_2.to_csv(save_path_borderline_2 + datasetname + '.csv', encoding='utf_8_sig', index=False)
         # 每处理完一个数据集，保存平均结果
         df_mean_raw.to_csv(save_path + 'mean_raw.csv', encoding='utf_8_sig', index=False)
         df_mean_ros.to_csv(save_path + 'mean_ros.csv', encoding='utf_8_sig', index=False)
         df_mean_smote.to_csv(save_path + 'mean_smote.csv', encoding='utf_8_sig', index=False)
-        df_mean_adasyn.to_csv(save_path + 'mean_adasyn.csv', encoding='utf_8_sig', index=False)
+        # df_mean_adasyn.to_csv(save_path + 'mean_adasyn.csv', encoding='utf_8_sig', index=False)
         df_mean_borderline_1.to_csv(save_path + 'mean_borderline_1.csv', encoding='utf_8_sig', index=False)
         df_mean_borderline_2.to_csv(save_path + 'mean_borderline_2.csv', encoding='utf_8_sig', index=False)
 
