@@ -16,7 +16,7 @@ from config import columns_dataset, columns_datasets, scoring
 warnings.filterwarnings("ignore")  # 忽略警告
 
 # 保存路径
-save_path = '../results/v2/dt/'
+save_path = '../results/gp/dt/'
 save_path_raw = save_path + 'raw/'
 save_path_dg = save_path + 'dg/'
 save_path_ds = save_path + 'ds/'
