@@ -7,7 +7,7 @@ class EvolutionaryParameterConfig:
         self.verbose = verbose  # 是否打印信息
 
 
-datasetnames = ['twonorm', 'ring', 'chess', 'sonar', 'banana', 'australian', 'heart', 'spambase', 'wdbc', 'ionosphere',
+datasetnames_imbalanced_ratio = ['twonorm', 'ring', 'chess', 'sonar', 'banana', 'australian', 'heart', 'spambase', 'wdbc', 'ionosphere',
                 'glass1', 'magic', 'wisconsin', 'pima', 'iris0', 'glass0', 'titanic', 'german', 'phoneme', 'yeast1',
                 'haberman', 'vehicle2', 'adult', 'ecoli1', 'appendicitis', 'new-thyroid1', 'ecoli2', 'segment0',
                 'ecoli3', 'page-blocks0', 'yeast-0-2-5-6-vs-3-7-8-9', 'vowel0', 'led7digit-0-2-4-5-6-7-8-9-vs-1',

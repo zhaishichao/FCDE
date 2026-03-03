@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
     print('########\t 开始执行！\t########')
 
-    for index, datasetname in enumerate(datasetnames):
+    for index, datasetname in enumerate(datasetnames[5]):
         df_dg = pd.DataFrame(columns=columns_dataset)
         df_ds = pd.DataFrame(columns=columns_dataset)
 
