@@ -21,11 +21,12 @@ datasetnames_5 = ['winequality-red-8-vs-6', 'wisconsin', 'australian', 'abalone9
 
 # datasetnames_5 = ['winequality-white-3-vs-7']
 
-datasetnames_6 = ['page-blocks0', 'shuttle-2-vs-5', 'coil2000', 'magic']
+datasetnames_6 = ['page-blocks0', 'shuttle-2-vs-5']
 
-datasetnames = [datasetnames_1, datasetnames_2, datasetnames_3, datasetnames_4, datasetnames_5, datasetnames_6]
+# datasetnames = [datasetnames_1, datasetnames_2, datasetnames_3, datasetnames_4, datasetnames_5, datasetnames_6]
+datasetnames = datasetnames_1 + datasetnames_2 + datasetnames_3 + datasetnames_4 + datasetnames_5 + datasetnames_6
 
-num_run = 1
+num_run = 30
 
 POPSIZE = 30  # 种群大小
 CXPB = 0.8  # 交叉概率
