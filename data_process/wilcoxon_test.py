@@ -44,19 +44,19 @@ raw_root = "C:\\Users\\zsc\\Desktop\\FCDE实验结果汇总\\原始数据\\knn" 
 # ======================
 def get_symbol(gp_vals, other_vals):
     if np.array_equal(gp_vals, other_vals):
-        return "≈"
+        return "$\\approx$"
     try:
         stat, p = wilcoxon(gp_vals, other_vals)
     except ValueError:
         # 兜底（极端情况下）
-        return "≈"
+        return "$\\approx$"
     if p < 0.05:
         if np.mean(gp_vals) > np.mean(other_vals):
-            return "+"
+            return "$+$"
         else:
-            return "-"
+            return "$-$"
     else:
-        return "≈"
+        return "$\\approx$"
 
 
 # ======================
