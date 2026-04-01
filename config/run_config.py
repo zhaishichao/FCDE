@@ -26,7 +26,21 @@ datasetnames_6 = ['page-blocks0', 'shuttle-2-vs-5']
 # datasetnames = [datasetnames_1, datasetnames_2, datasetnames_3, datasetnames_4, datasetnames_5, datasetnames_6]
 datasetnames = datasetnames_1 + datasetnames_2 + datasetnames_3 + datasetnames_4 + datasetnames_5 + datasetnames_6
 
-num_run = 30
+# datasetnames_final_1 = ['appendicitis', 'iris0', 'cleveland-0-vs-4', 'sonar', 'glass0', 'new-thyroid1',
+#                       'shuttle-6-vs-2-3', 'heart',
+#                       'spambase', 'banana', 'phoneme', 'ecoli1', 'ecoli2', 'segment0', 'led7digit-0-2-4-5-6-7-8-9-vs-1',
+#                       'yeast-1-vs-7', 'yeast-2-vs-8', 'wdbc', 'yeast1', 'german', 'wisconsin', 'australian', 'pima',
+#                       'vehicle2', 'winequality-red-8-vs-6-7', 'yeast-0-2-5-6-vs-3-7-8-9', "shuttle-2-vs-5"]
+
+datasetnames_final_1 = [
+    'sonar', 'banana', 'australian', 'heart', 'spambase', 'wdbc', 'wisconsin',
+    'pima', 'iris0', 'glass0', 'german', 'phoneme', 'yeast1', 'vehicle2',
+    'ecoli1', 'appendicitis', 'new-thyroid1', 'ecoli2', 'segment0',
+    'yeast-0-2-5-6-vs-3-7-8-9', 'led7digit-0-2-4-5-6-7-8-9-vs-1',
+    'cleveland-0-vs-4', 'yeast-1-vs-7', 'shuttle-6-vs-2-3', 'yeast-2-vs-8',
+    'winequality-red-8-vs-6-7', 'shuttle-2-vs-5']
+
+num_run = 3
 
 POPSIZE = 30  # 种群大小
 CXPB = 0.8  # 交叉概率
