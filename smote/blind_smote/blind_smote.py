@@ -234,7 +234,7 @@ class BlindSMOTE(BaseEstimator, TransformerMixin):
         self,
         k: int = 5,
         N_min: int = 1,
-        N_max: int = 5,
+        N_max: int = 10,
         pop_size: int = 100,
         n_gen: int = 10000,
         cx_prob: float = 0.8,
