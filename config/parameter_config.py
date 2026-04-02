@@ -55,7 +55,7 @@ datasetnames_5 = ['winequality-red-8-vs-6', 'wisconsin', 'australian', 'abalone9
                   'yeast-0-2-5-6-vs-3-7-8-9',
                   'flare-F', 'yeast5', 'yeast1']
 
-datasetnames_final = ['sonar', 'banana', 'australian', 'heart', 'spambase', 'wdbc', 'wisconsin',
+datasetnames = ['sonar', 'banana', 'australian', 'heart', 'spambase', 'wdbc', 'wisconsin',
                         'pima', 'iris0', 'glass0', 'german', 'phoneme', 'yeast1', 'vehicle2',
                         'ecoli1', 'appendicitis', 'new-thyroid1', 'ecoli2', 'segment0',
                         'yeast-0-2-5-6-vs-3-7-8-9', 'led7digit-0-2-4-5-6-7-8-9-vs-1',
