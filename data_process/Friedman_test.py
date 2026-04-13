@@ -24,12 +24,12 @@ method_display = {
     "ROS": "ROS",
     "SMOTE": "SMOTE",
     "SMOTEN": "SMOTEN",
-    "Borderline_1": "B-SMOTE-1",
-    "Borderline_2": "B-SMOTE-2"
+    "Borderline_1": "Borderline-1",
+    "Borderline_2": "Borderline-2"
 }
 
 metrics = ["F-measure", "AUC"]
-root_dir = "your_mean_results_path"
+root_dir = "C:\\Users\\zsc\\Desktop\\FCDE实验结果汇总\\F1和AUC\\knn\\"
 
 
 # ======================
@@ -39,7 +39,7 @@ def load_data(metric):
     data = []
     for m in methods:
         df = pd.read_csv(os.path.join(root_dir, f"{m}.csv"))
-        df = df.sort_values(by="Dataset")
+        df = df.sort_values(by="数据集")
         data.append(df[metric].values)
     return np.array(data).T  # datasets × methods
 
@@ -59,10 +59,12 @@ def compute_ranks(data):
 # 绘制 Friedman 排名图
 # ======================
 def plot_friedman_style(ranks, metric):
-    # 平均排名
-    mean_ranks = ranks.mean(axis=0)
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import pandas as pd
 
-    # 标准误（推荐，比std更常用）
+    # ===== 平均排名 & 标准误 =====
+    mean_ranks = ranks.mean(axis=0)
     sem = ranks.std(axis=0) / np.sqrt(ranks.shape[0])
 
     df = pd.DataFrame({
@@ -71,31 +73,43 @@ def plot_friedman_style(ranks, metric):
         "SEM": sem
     })
 
-    # 排序（从好到差：rank小 → 前）
     df = df.sort_values(by="MeanRank", ascending=True)
 
-    # ===== 画图 =====
+    # ===== 颜色（每个方法不同）=====
+    colors = plt.cm.tab10.colors  # 10种颜色够用
+
     plt.figure(figsize=(6, 4))
 
     y_pos = np.arange(len(df))
 
-    plt.errorbar(
-        df["MeanRank"],
-        y_pos,
-        xerr=df["SEM"],
-        fmt='o',
-        capsize=4
-    )
+    # ===== 每一行单独画（实现不同颜色）=====
+    for i in range(len(df)):
+        plt.errorbar(
+            df["MeanRank"].iloc[i],
+            y_pos[i],
+            xerr=df["SEM"].iloc[i],
+            fmt='o',
+            color=colors[i % len(colors)],
+            ecolor=colors[i % len(colors)],
+            capsize=4,
+            markersize=6
+        )
 
+    # ===== 坐标轴 =====
     plt.yticks(y_pos, [method_display[m] for m in df["Method"]])
-
     plt.xlabel("Mean Rank")
-    plt.title(f"{metric} Friedman test result")
+    plt.title(f"{metric} Average Rank")
 
-    plt.gca().invert_yaxis()  # 让最优在上
+    plt.gca().invert_yaxis()
+
+    # ===== 字体（论文推荐）=====
+    plt.rcParams["font.family"] = "Times New Roman"
 
     plt.tight_layout()
-    plt.savefig(f"friedman_{metric}.png", dpi=300)
+
+    # ===== 保存为PDF =====
+    plt.savefig(f"friedman_{metric}.pdf", bbox_inches='tight')
+
     plt.show()
 
 
