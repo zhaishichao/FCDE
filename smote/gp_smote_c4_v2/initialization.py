@@ -25,7 +25,7 @@ def init_toolbox(arity):
     # toolbox.register("selTournament", selTournament_cv)
 
     toolbox.register("mate", gp.cxOnePoint)
-    toolbox.register("expr_mut", gp.genFull, min_=1, max_=5)
+    toolbox.register("expr_mut", gp.genHalfAndHalf, min_=1, max_=5)
     toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
     toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=10))
     toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=10))

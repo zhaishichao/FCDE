@@ -140,5 +140,5 @@ for dataset_name, title, file_name in zip(dataset_names, titles, file_names):
     # =========================
     # 9. 保存为高质量 PDF
     # =========================
-    plt.savefig("../results/" + dataset_name + ".pdf", dpi=300)
+    plt.savefig("./results/" + dataset_name + ".pdf", dpi=300)
     plt.show()
