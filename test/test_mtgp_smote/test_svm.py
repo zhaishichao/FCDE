@@ -65,6 +65,6 @@ if __name__ == '__main__':
         # 保存结果到csv文件
         df_mtgp.to_csv(save_path_mtgp + datasetname + '.csv', encoding='utf_8_sig', index=False)
         # 每处理完一个数据集，保存平均结果
-        df_mean_mtgp.to_csv(save_path + 'mean_dg.csv', encoding='utf_8_sig', index=False)
+        df_mean_mtgp.to_csv(save_path + 'mean_mtgp.csv', encoding='utf_8_sig', index=False)
 
     print('########\t 结束执行！\t########')
