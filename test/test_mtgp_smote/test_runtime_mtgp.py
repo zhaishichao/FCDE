@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
             # GPSMOTE
             mtgp = MTGPSMOTESampler(
-                pop_size=30,  # 论文 512，此处缩小以加快演示
+                pop_size=512,  # 论文 512，此处缩小以加快演示
                 n_generations=100,  # 论文 100
                 cx_rate=0.7,
                 mut_rate=0.3,

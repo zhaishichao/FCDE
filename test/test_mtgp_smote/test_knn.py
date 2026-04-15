@@ -16,7 +16,7 @@ from smote.mtgp_smote.mtgp_smote import MTGPSMOTESampler
 warnings.filterwarnings("ignore")  # 忽略警告
 
 # 保存路径
-save_path = '../results/mtgp/dt/'
+save_path = '../results/mtgp/knn/'
 save_path_mtgp = save_path + 'mtgp/'
 # 检查目录是否存在，如果不存在则创建
 if not os.path.exists(save_path):
