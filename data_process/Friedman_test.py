@@ -2,7 +2,6 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
 # ======================
 # 配置
 # ======================
@@ -58,10 +57,11 @@ def compute_ranks(data):
 # ======================
 # 绘制 Friedman 排名图
 # ======================
+
+# ===== 字体（论文推荐）=====
+# 将默认衬线字体设为 Times New Roman
+plt.rcParams['font.family'] = 'Times New Roman'
 def plot_friedman_style(ranks, metric):
-    import matplotlib.pyplot as plt
-    import numpy as np
-    import pandas as pd
 
     # ===== 平均排名 & 标准误 =====
     mean_ranks = ranks.mean(axis=0)
@@ -101,9 +101,6 @@ def plot_friedman_style(ranks, metric):
     plt.title(f"{metric} Average Rank")
 
     plt.gca().invert_yaxis()
-
-    # ===== 字体（论文推荐）=====
-    plt.rcParams["font.family"] = "Times New Roman"
 
     plt.tight_layout()
 

@@ -14,6 +14,7 @@ file_paths = [
 
 method_names = [
     "DG-SMOTE",
+    "MTGP-SMOTE",
     "Blind-SMOTE",
     "GP-SMOTE",
 ]
