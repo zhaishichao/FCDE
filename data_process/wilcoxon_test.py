@@ -6,23 +6,25 @@ from scipy.stats import wilcoxon
 # ======================
 # 配置
 # ======================
+# methods = [
+#     "RAW",
+#     "ROS",
+#     "SMOTE",
+#     "SMOTEN",
+#     "Borderline_1",
+#     "Borderline_2"
+# ]
 methods = [
-    "RAW",
-    "ROS",
-    "SMOTE",
-    "SMOTEN",
-    "Borderline_1",
-    "Borderline_2"
+    "DG-SMOTE",
+    "MTGP-SMOTE",
+    "Blind-SMOTE"
 ]
 
+
 method_display = {
-    "RAW": "RAW",
-    "ROS": "ROS",
-    "SMOTE": "SMOTE",
-    "SMOTEN": "SMOTEN",
-    "Borderline_1": "Borderline-SMOTE-1",
-    "Borderline_2": "Borderline-SMOTE-2",
-    "GP-SMOTE": "GP-SMOTE"
+    "DG-SMOTE": "DG-SMOTE",
+    "MTGP-SMOTE": "MTGP-SMOTE",
+    "Blind-SMOTE": "Blind-SMOTE"
 }
 
 metrics = ["F-measure", "AUC"]
@@ -35,8 +37,8 @@ datasetnames = [  # 你的27个数据集
     "shuttle-6-vs-2-3", "yeast-2-vs-8", "winequality-red-8-vs-6-7", "shuttle-2-vs-5"]
 
 # 路径
-mean_root = "C:\\Users\\zsc\\Desktop\\FCDE实验结果汇总\\F1和AUC\\knn"  # 平均结果（换成dt/knn也行）
-raw_root = "C:\\Users\\zsc\\Desktop\\FCDE实验结果汇总\\原始数据\\knn"  # 原始30次结果
+mean_root = "C:\\Users\\zsc\\Desktop\\FCDE实验结果汇总\\mean\\仅F-measure和AUC\\knn"  # 平均结果（换成dt/knn也行）
+raw_root = "C:\\Users\\zsc\\Desktop\\FCDE实验结果汇总\\软处理（wilcoxon）\\knn"  # 原始30次结果
 
 
 # ======================
@@ -100,7 +102,7 @@ def generate_table(metric):
     latex = []
 
     # 表头
-    header = "Dataset & RAW & ROS & SMOTE & SMOTEN & Borderline-SMOTE-1 & Borderline-SMOTE-2 & GP-SMOTE \\\\"
+    header = "Dataset & DG-SMOTEN & MTGP-SMOTE & Blind-SMOTE & GP-SMOTE \\\\"
     latex.append(header)
     latex.append("\\hline")
 

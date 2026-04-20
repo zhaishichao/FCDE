@@ -28,7 +28,7 @@ method_display = {
 }
 
 metrics = ["F-measure", "AUC"]
-root_dir = "C:\\Users\\zsc\\Desktop\\FCDE实验结果汇总\\F1和AUC\\knn\\"
+root_dir = "C:\\Users\\zsc\\Desktop\\FCDE实验结果汇总\\mean\\仅F-measure和AUC\\knn\\"
 
 
 # ======================

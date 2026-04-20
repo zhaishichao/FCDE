@@ -7,6 +7,7 @@ file_root = "C:\\Users\\zsc\\Desktop\\FCDE实验结果汇总\\runtime\\"
 # ====== 1. 读取多个CSV ======
 file_paths = [
     "mean_dg.csv",
+    "mean_mtgp.csv",
     "mean_bs.csv",
     "mean_ds.csv",
     # 以后可以继续加
