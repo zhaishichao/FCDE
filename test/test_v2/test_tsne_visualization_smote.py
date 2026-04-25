@@ -15,7 +15,7 @@ from smote.mtgp_smote_res_only.mtgp_smote import MTGPSMOTESampler
 warnings.filterwarnings("ignore")  # 忽略警告
 
 # 保存路径
-save_path = '../results/tsne/evol/'
+save_path = '../results/tsne/tsne/'
 save_path_bs = save_path + 'bs/'
 save_path_mt = save_path + 'mt/'
 # 检查目录是否存在，如果不存在则创建

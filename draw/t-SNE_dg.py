@@ -7,7 +7,7 @@ import seaborn as sns
 from sklearn.manifold import TSNE
 
 dataset_names = ['heart', 'wisconsin', 'pima', 'shuttle']
-titles = ['D4', 'D7', 'D8', 'D27']
+titles = ['D2', 'D5', 'D6', 'D25']
 file_names = ['heart_3_X_train_res_ds.csv', 'wisconsin_5_X_train_res_ds.csv', 'pima_4_X_train_res_ds.csv',
               'shuttle-2-vs-5_3_X_train_res_dg.csv']
 root_path = "C:\\Users\\zsc\\Desktop\\FCDE实验结果汇总\\tsne\\"
@@ -75,7 +75,7 @@ for dataset_name, title, file_name in zip(dataset_names, titles, file_names):
     # =========================
     # 7. 使用 seaborn 绘制 t-SNE 分布图
     # =========================
-    if title == 'D4':
+    if title == 'D5' or title == 'D6':
         legend = True
     else:
         legend = False
@@ -119,14 +119,14 @@ for dataset_name, title, file_name in zip(dataset_names, titles, file_names):
     plt.title("", fontweight="bold", fontsize=24)
     plt.xlabel("")
     plt.ylabel("")
-    plt.xticks(color="black", fontsize=15)
-    plt.yticks(color="black", fontsize=15)
+    plt.xticks(color="black", fontsize=18)
+    plt.yticks(color="black", fontsize=18)
 
     if legend:
         plt.legend(
             # title="Class",  # 图例标题
-            fontsize=15.5,  # 👈 控制图例文字大小（主标签）
-            loc="upper left",
+            fontsize=18,  # 👈 控制图例文字大小（主标签）
+            loc="lower left",
             title_fontsize=11,  # 👈 标题字体大小（略大一点更协调）
             markerscale=1.0,  # 👈 缩小图例中点的大小（默认1.0）
             handletextpad=0.05,  # 👈 点与文字之间的距离（关键！默认约0.8）

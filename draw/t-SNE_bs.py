@@ -7,13 +7,13 @@ import seaborn as sns
 from sklearn.manifold import TSNE
 
 dataset_names = ['heart', 'wisconsin', 'pima', 'shuttle']
-titles = ['D4', 'D7', 'D8', 'D27']
+titles = ['D2', 'D5', 'D6', 'D25']
 file_names = ['heart_1_X_train_res_bs.csv', 'wisconsin_2_X_train_res_bs.csv', 'pima_3_X_train_res_bs.csv',
               'shuttle-2-vs-5_1_X_train_res_bs.csv']
 root_path = "../test/results/tsne/evol/"
 # =========================
-# 1. 读取 CSV 数据
-# =========================
+# # 1. 读取 CSV 数据
+# # =========================
 
 for dataset_name, title, file_name in zip(dataset_names, titles, file_names):
     title = title
@@ -120,13 +120,13 @@ for dataset_name, title, file_name in zip(dataset_names, titles, file_names):
     plt.title("", fontweight="bold", fontsize=24)
     plt.xlabel("")
     plt.ylabel("")
-    plt.xticks(color="black", fontsize=15)
-    plt.yticks(color="black", fontsize=15)
+    plt.xticks(color="black", fontsize=18)
+    plt.yticks(color="black", fontsize=18)
 
     if legend:
         plt.legend(
             # title="Class",  # 图例标题
-            fontsize=15.5,  # 👈 控制图例文字大小（主标签）
+            fontsize=18,  # 👈 控制图例文字大小（主标签）
             loc="upper left",
             title_fontsize=11,  # 👈 标题字体大小（略大一点更协调）
             markerscale=1.0,  # 👈 缩小图例中点的大小（默认1.0）
