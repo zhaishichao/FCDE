@@ -56,10 +56,8 @@ else:
     df_auc = df_auc.reset_index(drop=True)
     sort_label = "Sorted by Dataset"
 
-
-
-colors = ['#0DC0C9','#FD8251']
-colors = ['#FD8251','#0DC0C9']
+colors = ['#0DC0C9', '#FD8251']
+colors = ['#FD8251', '#0DC0C9']
 # 设置颜色
 colors_f1 = [colors[0] if x < 0 else colors[1] for x in df_f1['Difference']]
 colors_auc = [colors[0] if x < 0 else colors[1] for x in df_auc['Difference']]
@@ -78,12 +76,12 @@ for i, (diff, color) in enumerate(zip(df_f1['Difference'], colors_f1)):
 
 # 直接设置 x 轴刻度的字体和大小
 ax1.tick_params(axis='x', labelsize=14)
-ax1.set_xticks([-0.5, -0.25, 0, 0.25, 0.5, 0.75, 1.0, 1.25,1.50])
+ax1.set_xticks([-0.5, -0.25, 0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.50])
 ax1.set_yticks(y_pos)
-ax1.set_yticklabels(df_f1['Dataset'], fontsize=14, family='serif')
+ax1.set_yticklabels(df_f1['Dataset'], fontsize=14.5, family='serif')
 ax1.set_xlabel('Performance Difference (Constrained - Unconstrained) / %',
                fontsize=16, family='serif', fontweight='bold')
-ax1.set_ylabel('Dataset', fontsize=14, family='serif', fontweight='bold')
+ax1.set_ylabel('Dataset', fontsize=17, family='serif', fontweight='bold')
 ax1.set_title('F1-Score', fontsize=16, family='serif', fontweight='bold', pad=15)
 ax1.axvline(x=0, color='black', linestyle='-', linewidth=1.0)
 ax1.grid(axis='x', alpha=0.5, linestyle='--')
@@ -101,10 +99,10 @@ for i, (diff, color) in enumerate(zip(df_auc['Difference'], colors_auc)):
 ax2.tick_params(axis='x', labelsize=14)
 ax2.set_xticks([-0.5, -0.25, 0, 0.25, 0.5, 0.75, 1.0, 1.25])
 ax2.set_yticks(y_pos)
-ax2.set_yticklabels(df_auc['Dataset'], fontsize=14, family='serif')
+ax2.set_yticklabels(df_auc['Dataset'], fontsize=14.5, family='serif')
 ax2.set_xlabel('Performance Difference (Constrained - Unconstrained) / %',
                fontsize=16, family='serif', fontweight='bold')
-ax2.set_ylabel('Dataset', fontsize=14, family='serif', fontweight='bold')
+ax2.set_ylabel('Dataset', fontsize=16, family='serif', fontweight='bold')
 ax2.set_title('AUC', fontsize=16, family='serif', fontweight='bold', pad=15)
 ax2.axvline(x=0, color='black', linestyle='-', linewidth=1.0)
 ax2.grid(axis='x', alpha=0.5, linestyle='--')
@@ -112,14 +110,14 @@ ax2.grid(axis='x', alpha=0.5, linestyle='--')
 # 添加共同的图例
 from matplotlib.patches import Patch
 
-legend_elements = [Patch(facecolor=colors[0], edgecolor='black', label='Positive'),
-                   Patch(facecolor=colors[1], edgecolor='black', label='Negative')]
-fig.legend(handles=legend_elements, loc='upper center', ncol=2, fontsize=15,prop={'weight': 'bold'},
-           frameon=True, fancybox=False, edgecolor='black', bbox_to_anchor=(0.5, 0.95))
+legend_elements = [Patch(facecolor=colors[0], label='Negative'),
+                   Patch(facecolor=colors[1], label='Positive')]
+fig.legend(handles=legend_elements, loc='upper center', ncol=2, fontsize=15.5,
+           frameon=True, fancybox=False, bbox_to_anchor=(0.5, 0.95))
 
 # 整体标题
 fig.suptitle(f'Paired Difference Analysis',
-             fontsize=18, family='serif', fontweight='bold', y=0.995)
+             fontsize=19, family='serif', fontweight='bold', y=0.995)
 
 plt.tight_layout(rect=[0, 0, 1, 0.96])
 plt.savefig('./paired_difference_comparison.pdf', dpi=300, bbox_inches='tight')
