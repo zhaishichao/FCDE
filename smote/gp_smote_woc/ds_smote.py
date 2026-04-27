@@ -11,7 +11,7 @@ from .visualize import curve_fitting
 
 
 class DSSMOTE:
-    def __init__(self, X=None, y=None, evol_parameter=None):
+    def __init__(self, X=None, y=None, evol_parameter=None, remove_gi=0):
         self.X = X  # 原始数据
         self.y = y  # 原始标签
         self.parameter = evol_parameter  # 进化参数
@@ -30,8 +30,13 @@ class DSSMOTE:
         self.pset, self.toolbox = init_toolbox(len(self.data['min_x']))
         self.toolbox.register("evaluate", self.evaluate)
         self.toolbox.register("selTournament", selTournament_cv)
-
+        self.remove_gi = remove_gi
         self.cv_list = []
+        self.feasible_g1 = 0
+        self.feasible_g2 = 0
+        self.feasible_g3 = 0
+        self.feasible_g4 = 0
+        self.feasible_all = 0
 
     # 评估个体
     def evaluate(self, individuals):
@@ -83,11 +88,11 @@ class DSSMOTE:
         population = self.toolbox.population(n=self.parameter.POPSIZE)
         self.toolbox.evaluate(population)  # 评估初始种群
 
-        # thresholds = calculate_constraint_thresholds(population, self.min_avg_distance)  # 计算初始种群的最大约束违反程度
-        # get_feasible_infeasible(population, thresholds)  # 得到可行个体与不可行个体
+        thresholds = calculate_constraint_thresholds(population, self.min_avg_distance)  # 计算初始种群的最大约束违反程度
+        get_feasible_infeasible(population, thresholds, self.remove_gi)  # 得到可行个体与不可行个体
 
         # 进化搜索
-        # cv_list = []  # 存储约束违反程度（用于绘制收敛曲线）
+        cv_list = []  # 存储约束违反程度（用于绘制收敛曲线）
         # print('########### \t Start the evolution! \t ##########')
         for gen in range(0, self.parameter.NGEN):
             parent = self.toolbox.selTournament(population, self.parameter.POPSIZE)  # 选择父本
@@ -108,19 +113,18 @@ class DSSMOTE:
 
             # 环境选择
             population = self.toolbox.select(population, self.parameter.POPSIZE)
-            # feasible_pop, infeasible_pop = get_feasible_infeasible(population, thresholds)  # 得到可行个体与不可行个体
-            # if len(feasible_pop) >= self.parameter.POPSIZE:
-            #     population = self.toolbox.select(feasible_pop, self.parameter.POPSIZE)
-            # elif len(feasible_pop) > 0:
-            #     population = feasible_pop + infeasible_pop[:self.parameter.POPSIZE - len(
-            #         feasible_pop)]  # 在不可行个体中选取违约程度小的个体，保证pop数量为POPSIZE
-            # else:
-            #     population = feasible_pop + infeasible_pop[:self.parameter.POPSIZE - len(
-            #         feasible_pop)]  # 加入不可行个体中违约程度小的个体，保证pop数量为POPSIZE
+            feasible_pop, infeasible_pop = get_feasible_infeasible(population, thresholds, self.remove_gi)  # 得到可行个体与不可行个体
+            if len(feasible_pop) >= self.parameter.POPSIZE:
+                population = self.toolbox.select(feasible_pop, self.parameter.POPSIZE)
+            elif len(feasible_pop) > 0:
+                population = feasible_pop + infeasible_pop[:self.parameter.POPSIZE - len(
+                    feasible_pop)]  # 在不可行个体中选取违约程度小的个体，保证pop数量为POPSIZE
+            else:
+                population = feasible_pop + infeasible_pop[:self.parameter.POPSIZE - len(
+                    feasible_pop)]  # 加入不可行个体中违约程度小的个体，保证pop数量为POPSIZE
 
-            # print(f'第{gen}代平均约束值', calculate_mean_inndividuals_cv(population, thresholds))
             # 记录一下约束值去的变化
-            # cv_list.append(np.mean([ind.fitness.cv for ind in population]))
+            cv_list.append(np.mean([ind.fitness.cv for ind in population]))
 
         # 最后一代种群
         synthesis_instances = []

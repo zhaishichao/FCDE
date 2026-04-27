@@ -26,19 +26,52 @@ def calculate_constraint_thresholds(individuals, avg_distance=None):
 
 
 # 计算约束违反程度 cv
-def cv(ind, thresholds):
+def cv(ind, thresholds, remove_gi):
     cvs = []
-    cvs.append(max(0, (thresholds['avg_distance'] - ind.distance_minority_min) / thresholds['max_g1']))
-    cvs.append(max(0, (0 - ind.fitness.values[0]) / thresholds['max_g2']))
-    cvs.append(max(0, ind.distance_minority_center / thresholds['max_g3']))
-    cvs.append(max(0, (ind.cosine_angle - 90) / thresholds['max_g4']))
-    cv = sum(cvs) / 4  # 求0和cv中的最小值之和，cv=0，表示是一个可行个体
+
+    if remove_gi != 1:
+        cvs.append(max(0, (thresholds['avg_distance'] - ind.distance_minority_min) / thresholds['max_g1']))
+    if remove_gi != 2:
+        cvs.append(max(0, (0 - ind.fitness.values[0]) / thresholds['max_g2']))
+    if remove_gi != 3:
+        cvs.append(max(0, ind.distance_minority_center / thresholds['max_g3']))
+    if remove_gi != 4:
+        cvs.append(max(0, (ind.cosine_angle - 90) / thresholds['max_g4']))
+    cv = sum(cvs) / 3  # 求0和cv中的最小值之和，cv=0，表示是一个可行个体
     ind.fitness.cv = cv  # 将cv值保存在个体中
     return cv
 
 
+def cv_g1(ind, thresholds):
+    cvs = []
+    cvs.append(max(0, (thresholds['avg_distance'] - ind.distance_minority_min) / thresholds['max_g1']))
+    cv = sum(cvs)  # 求0和cv中的最小值之和，cv=0，表示是一个可行个体
+    return cv
+
+
+def cv_g2(ind, thresholds):
+    cvs = []
+    cvs.append(max(0, (0 - ind.fitness.values[0]) / thresholds['max_g2']))
+    cv = sum(cvs)  # 求0和cv中的最小值之和，cv=0，表示是一个可行个体
+    return cv
+
+
+def cv_g3(ind, thresholds):
+    cvs = []
+    cvs.append(max(0, ind.distance_minority_center / thresholds['max_g3']))
+    cv = sum(cvs)  # 求0和cv中的最小值之和，cv=0，表示是一个可行个体
+    return cv
+
+
+def cv_g4(ind, thresholds):
+    cvs = []
+    cvs.append(max(0, (ind.cosine_angle - 90) / thresholds['max_g4']))
+    cv = sum(cvs)  # 求0和cv中的最小值之和，cv=0，表示是一个可行个体
+    return cv
+
+
 # 分离可行解与不可行解
-def get_feasible_infeasible(pop, thresholds):
+def get_feasible_infeasible(pop, thresholds, remove_gi):
     '''
     :param pop: 种群
     :param constraints: 约束阈值
@@ -46,9 +79,35 @@ def get_feasible_infeasible(pop, thresholds):
     '''
     index = []
     for i in range(len(pop)):
-        if cv(pop[i], thresholds) == 0:  # 判断个体适应度是否都满足约束条件
+        if cv(pop[i], thresholds, remove_gi) == 0:  # 判断个体适应度是否都满足约束条件
             index.append(i)  # 将不符合约束条件的个体的索引添加到index中
     feasibles = [ind for j, ind in enumerate(pop) if j in index]  # 可行个体
     infeasibles = [ind for j, ind in enumerate(pop) if j not in index]  # 不可行个体
     infeasibles = sorted(infeasibles, key=attrgetter("fitness.cv"), reverse=False)  # 对不可行个体按cv值升序排列
     return feasibles, infeasibles
+
+
+def get_feasible_g1g1g3g4(pop, thresholds):
+    '''
+    :param pop: 种群
+    :param constraints: 约束阈值
+    :return: 可行解和不可行解
+    '''
+    num_fe_g1 = 0
+    num_fe_g2 = 0
+    num_fe_g3 = 0
+    num_fe_g4 = 0
+    num_fe_all = 0
+
+    for i in range(len(pop)):
+        if cv_g1(pop[i], thresholds) == 0:
+            num_fe_g1 = num_fe_g1 + 1
+        if cv_g2(pop[i], thresholds) == 0:
+            num_fe_g2 = num_fe_g2 + 1
+        if cv_g3(pop[i], thresholds) == 0:
+            num_fe_g3 = num_fe_g3 + 1
+        if cv_g4(pop[i], thresholds) == 0:
+            num_fe_g4 = num_fe_g4 + 1
+        if cv(pop[i], thresholds) == 0:
+            num_fe_all = num_fe_all + 1
+    return num_fe_g1, num_fe_g2, num_fe_g3, num_fe_g4, num_fe_all
