@@ -1,5 +1,6 @@
 from sklearn.svm import SVC
 
+
 from metric import fit_pred, metric
 from sklearn.utils import shuffle
 import pandas as pd
@@ -9,7 +10,6 @@ from data_preprocess import data_loader, data_preprocess
 from smote.gp_smote_c4_v2 import DSSMOTE
 import warnings
 from sklearn import clone
-
 from config import datasetnames, num_run, evol_parameter, file_path
 from config import columns_dataset, columns_datasets, scoring
 

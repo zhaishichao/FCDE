@@ -63,4 +63,4 @@ datasetnames = ['sonar', 'banana', 'australian', 'heart', 'spambase', 'wdbc', 'w
                 'winequality-red-8-vs-6-7', 'shuttle-2-vs-5']
 
 datasetnames_1 = ['heart', 'wisconsin', 'pima', 'shuttle-2-vs-5']
-datasetnames_2 = ['wisconsin', 'pima']
+datasetnames_2 = ['wisconsin']

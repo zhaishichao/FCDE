@@ -63,7 +63,7 @@ colors_f1 = [colors[0] if x < 0 else colors[1] for x in df_f1['Difference']]
 colors_auc = [colors[0] if x < 0 else colors[1] for x in df_auc['Difference']]
 
 # 创建并排的两张图
-fig, axes = plt.subplots(1, 2, figsize=(16, 8))
+fig, axes = plt.subplots(1, 2, figsize=(14, 7))
 
 # ============================================================================
 # 绘制F1指标的配对差值图
@@ -78,14 +78,17 @@ for i, (diff, color) in enumerate(zip(df_f1['Difference'], colors_f1)):
 ax1.tick_params(axis='x', labelsize=14)
 ax1.set_xticks([-0.5, -0.25, 0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.50])
 ax1.set_yticks(y_pos)
-ax1.set_yticklabels(df_f1['Dataset'], fontsize=14.5, family='serif')
-ax1.set_xlabel('Performance Difference (Constrained - Unconstrained) / %',
+ax1.set_yticklabels(df_f1['Dataset'], fontsize=14)
+ax1.set_xlabel('Constrained - Unconstrained / %',
                fontsize=16, family='serif', fontweight='bold')
-ax1.set_ylabel('Dataset', fontsize=17, family='serif', fontweight='bold')
-ax1.set_title('F1-Score', fontsize=16, family='serif', fontweight='bold', pad=15)
-ax1.axvline(x=0, color='black', linestyle='-', linewidth=1.0)
+ax1.set_ylabel('Dataset', fontsize=17)
+ax1.set_title('F1-Score', fontsize=16, fontweight='bold', pad=15)
+ax1.axvline(x=0, linestyle='-',color="black", linewidth=0.5)
 ax1.grid(axis='x', alpha=0.5, linestyle='--')
-
+ax1.tick_params(axis='both', labelsize=14)
+for spine in ax1.spines.values():
+    spine.set_color('gray')
+ax1.set_xlim(-0.5, 1.5)
 # ============================================================================
 # 绘制AUC指标的配对差值图
 # ============================================================================
@@ -99,14 +102,16 @@ for i, (diff, color) in enumerate(zip(df_auc['Difference'], colors_auc)):
 ax2.tick_params(axis='x', labelsize=14)
 ax2.set_xticks([-0.5, -0.25, 0, 0.25, 0.5, 0.75, 1.0, 1.25])
 ax2.set_yticks(y_pos)
-ax2.set_yticklabels(df_auc['Dataset'], fontsize=14.5, family='serif')
-ax2.set_xlabel('Performance Difference (Constrained - Unconstrained) / %',
+ax2.set_yticklabels(df_auc['Dataset'], fontsize=14.5)
+ax2.set_xlabel('Constrained - Unconstrained / %',
                fontsize=16, family='serif', fontweight='bold')
-ax2.set_ylabel('Dataset', fontsize=16, family='serif', fontweight='bold')
-ax2.set_title('AUC', fontsize=16, family='serif', fontweight='bold', pad=15)
-ax2.axvline(x=0, color='black', linestyle='-', linewidth=1.0)
+ax2.set_ylabel('Dataset', fontsize=16)
+ax2.set_title('AUC', fontsize=16, fontweight='bold', pad=15)
+ax2.axvline(x=0, linestyle='-', color="black",linewidth=0.5)
 ax2.grid(axis='x', alpha=0.5, linestyle='--')
-
+ax2.tick_params(axis='both', labelsize=14)
+for spine in ax2.spines.values():
+    spine.set_color('gray')
 # 添加共同的图例
 from matplotlib.patches import Patch
 

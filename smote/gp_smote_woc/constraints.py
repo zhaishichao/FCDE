@@ -37,7 +37,10 @@ def cv(ind, thresholds, remove_gi):
         cvs.append(max(0, ind.distance_minority_center / thresholds['max_g3']))
     if remove_gi != 4:
         cvs.append(max(0, (ind.cosine_angle - 90) / thresholds['max_g4']))
-    cv = sum(cvs) / 3  # 求0和cv中的最小值之和，cv=0，表示是一个可行个体
+    if remove_gi == 0:
+        cv = sum(cvs) / 4  # 求0和cv中的最小值之和，cv=0，表示是一个可行个体
+    else:
+        cv = sum(cvs) / 3  # 求0和cv中的最小值之和，cv=0，表示是一个可行个体
     ind.fitness.cv = cv  # 将cv值保存在个体中
     return cv
 
@@ -108,6 +111,6 @@ def get_feasible_g1g1g3g4(pop, thresholds):
             num_fe_g3 = num_fe_g3 + 1
         if cv_g4(pop[i], thresholds) == 0:
             num_fe_g4 = num_fe_g4 + 1
-        if cv(pop[i], thresholds) == 0:
+        if cv(pop[i], thresholds,0) == 0:
             num_fe_all = num_fe_all + 1
     return num_fe_g1, num_fe_g2, num_fe_g3, num_fe_g4, num_fe_all

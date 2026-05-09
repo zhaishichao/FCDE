@@ -1,7 +1,8 @@
 import numpy as np
+import pandas as pd
 from deap import tools
 from deap.algorithms import varAnd
-from .constraints import calculate_constraint_thresholds, get_feasible_infeasible
+from .constraints import calculate_constraint_thresholds, get_feasible_infeasible, get_feasible_g1g1g3g4
 from .data_preprocess import separate_maj_min, random_sampling, calculate_center, calculate_ave_max_distance, \
     minority_class_proportion, calculate_cosine_angle, calculate_min_distance, compute_avg_distance
 from .initialization import init_toolbox
@@ -61,7 +62,7 @@ class DSSMOTE:
                 # 计算离少数类中心的距离
                 # （第三个约束：新实例与少数类中心的距离，要小于离少数类中心最远的距离）
                 distance_minority_center = np.linalg.norm(self.min_center - new_instance)
-                individual.distance_minority_center = distance_minority_center - self.ave_max_distance
+                individual.distance_minority_center = individual.distance_minority_min - self.ave_max_distance
 
                 # 计算角度 maj_center - min_center表示一条从少数类中心到多数类中心的向量
                 # （第四个约束：新实例与多数类中心、少数类中心的夹角小于90°）
@@ -82,7 +83,7 @@ class DSSMOTE:
         self.y_samples = np.concatenate([maj_samples_y, min_samples_y], axis=0)  # 合并标签
 
         self.ave_max_distance = calculate_ave_max_distance(self.min_samples,
-                                                           k=len(self.min_samples) // 5)  # 计算与少数类中心的平均最大距离
+                                                           k=len(self.min_samples) // 10)  # 计算与少数类中心的平均最大距离
 
         # 初始化种群
         population = self.toolbox.population(n=self.parameter.POPSIZE)
@@ -90,6 +91,12 @@ class DSSMOTE:
 
         thresholds = calculate_constraint_thresholds(population, self.min_avg_distance)  # 计算初始种群的最大约束违反程度
         get_feasible_infeasible(population, thresholds, self.remove_gi)  # 得到可行个体与不可行个体
+
+
+
+
+        feasible_list = []
+        feasible_list.append(get_feasible_g1g1g3g4(population, thresholds))
 
         # 进化搜索
         cv_list = []  # 存储约束违反程度（用于绘制收敛曲线）
@@ -112,8 +119,8 @@ class DSSMOTE:
                 population = remove_duplicate_individuals(population)
 
             # 环境选择
-            population = self.toolbox.select(population, self.parameter.POPSIZE)
             feasible_pop, infeasible_pop = get_feasible_infeasible(population, thresholds, self.remove_gi)  # 得到可行个体与不可行个体
+
             if len(feasible_pop) >= self.parameter.POPSIZE:
                 population = self.toolbox.select(feasible_pop, self.parameter.POPSIZE)
             elif len(feasible_pop) > 0:
@@ -122,7 +129,7 @@ class DSSMOTE:
             else:
                 population = feasible_pop + infeasible_pop[:self.parameter.POPSIZE - len(
                     feasible_pop)]  # 加入不可行个体中违约程度小的个体，保证pop数量为POPSIZE
-
+            feasible_list.append(get_feasible_g1g1g3g4(population, thresholds))
             # 记录一下约束值去的变化
             cv_list.append(np.mean([ind.fitness.cv for ind in population]))
 
@@ -133,6 +140,7 @@ class DSSMOTE:
             synthesis_instance = func(*self.data['min_x'])
             synthesis_instances.append(synthesis_instance)
         # self.cv_list = cv_list
+        pd.DataFrame(feasible_list).to_csv('wilcon.csv', index=False, header=False, encoding='utf-8')
 
         return synthesis_instances
 

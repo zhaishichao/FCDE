@@ -10,13 +10,13 @@ from smote.gp_smote_woc import DSSMOTE
 import warnings
 from sklearn import clone
 
-from config import datasetnames, num_run, evol_parameter, file_path
+from config import datasetnames, num_run, evol_parameter, file_path, datasetnames_2
 from config import columns_dataset, columns_datasets, scoring
 
 warnings.filterwarnings("ignore")  # 忽略警告
 
 # 保存路径
-save_path = '../results/woc/knn/'
+save_path = '../results/woc_2/knn/'
 save_path_ds = save_path + 'ds/'
 # 检查目录是否存在，如果不存在则创建
 if not os.path.exists(save_path):
@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     print('########\t 开始执行！\t########')
 
-    for index, datasetname in enumerate(datasetnames):
+    for index, datasetname in enumerate(datasetnames_2):
         df_ds = pd.DataFrame(columns=columns_dataset)
 
         print('##########\t', '正在处理：', datasetname, '\t##########')
@@ -41,10 +41,11 @@ if __name__ == '__main__':
             X_train, X_test, y_train, y_test = data_preprocess(X, y, standard=True, random_state=42 + i)
 
             # GPSMOTE
-            ds = DSSMOTE(X=X_train, y=y_train, evol_parameter=evol_parameter)
+            ds = DSSMOTE(X=X_train, y=y_train, evol_parameter=evol_parameter, remove_gi=0)
             X_train_resampled, y_train_resampled = ds.fit_resample()
             X_shuffled, y_shuffled = shuffle(X_train_resampled, y_train_resampled, random_state=42 + i)
-            y_pred, y_prob = fit_pred(X_shuffled, y_shuffled.astype('int'), X_test=X_test, clf=clone(clf), soft_lable=True)
+            y_pred, y_prob = fit_pred(X_shuffled, y_shuffled.astype('int'), X_test=X_test, clf=clone(clf),
+                                      soft_lable=True)
             result_ds = metric(y_test.astype('int'), y_pred, y_prob, scoring)
             df_ds.loc[i] = [result_ds['f1_macro'], result_ds['g_mean'], result_ds['roc_auc_ovr']]
 

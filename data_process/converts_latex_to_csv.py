@@ -2,7 +2,7 @@ import os.path
 import re
 import pandas as pd
 
-def latex_to_csv(raw_text, columns, save_path="output.csv"):
+def latex_to_csv(raw_text, columns, save_path="wilcon.csv"):
     """
     功能：
     1. 读取多行 LaTeX 表格代码
