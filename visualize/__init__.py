@@ -1,1 +1,1 @@
-from .visualize import tsne_visualization_binary
+from .tsne_plot import plot_tsne
