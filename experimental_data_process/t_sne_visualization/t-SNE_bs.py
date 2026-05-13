@@ -87,11 +87,6 @@ for dataset_name, title, file_name in zip(dataset_names, titles, file_names):
         y="Dim2",  # y轴变量（t-SNE 第二维）
         hue="Class",  # 按类别上色（最关键参数之一）
         # 👉 hue 会根据 Class 自动分组并赋予不同颜色
-        # palette={
-        #     label_map[majority_class]: "#d62728",  # 蓝色
-        #     label_map[minority_class]: "#1f77b4",  # 红色
-        #     label_map[2]: "#2ca02c"  # 绿色
-        # },
         palette={
             label_map[majority_class]: "#3FADFF",  # 蓝色
             label_map[minority_class]: "#0DC0C9",  # 红色
