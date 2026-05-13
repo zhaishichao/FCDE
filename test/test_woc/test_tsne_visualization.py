@@ -4,13 +4,13 @@ from sklearn.neighbors import KNeighborsClassifier
 import pandas as pd
 import os
 from data_preprocess import data_loader, data_preprocess
-from smote import DGSMOTE
-from smote.borderline_smote import BorderSMOTE
-from smote.gp_smote_woc import DSSMOTE
+from smote_variants import DGSMOTE
+from smote_variants.borderline_smote import BorderSMOTE
+from smote_variants.gp_smote_woc import DSSMOTE
 import warnings
 
 from config import num_run, evol_parameter, file_path, datasetnames_2
-from smote.gp_smote_c4_v2.visualize import tsne_visualization_binary
+from smote_variants.gp_smote_c4_v2.visualize import tsne_visualization_binary
 
 warnings.filterwarnings("ignore")  # 忽略警告
 

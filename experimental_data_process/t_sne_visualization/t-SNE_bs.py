@@ -10,7 +10,7 @@ dataset_names = ['heart', 'wisconsin', 'pima', 'shuttle']
 titles = ['D2', 'D5', 'D6', 'D25']
 file_names = ['heart_1_X_train_res_bs.csv', 'wisconsin_2_X_train_res_bs.csv', 'pima_3_X_train_res_bs.csv',
               'shuttle-2-vs-5_1_X_train_res_bs.csv']
-root_path = "../test/results/tsne/evol/"
+root_path = "../../test/results/tsne/evol/"
 # =========================
 # # 1. 读取 CSV 数据
 # # =========================

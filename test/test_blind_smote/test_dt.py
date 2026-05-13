@@ -5,7 +5,7 @@ from sklearn.utils import shuffle
 import pandas as pd
 import os
 
-from smote.blind_smote import BlindSMOTE
+from smote_variants.blind_smote import BlindSMOTE
 from data_preprocess import data_loader, data_preprocess
 import warnings
 from sklearn import clone

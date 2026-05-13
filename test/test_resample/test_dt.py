@@ -18,7 +18,7 @@ warnings.filterwarnings("ignore")  # 忽略警告
 save_path = '../results/resample/dt/'
 save_path_raw = save_path + 'raw/'
 save_path_ros = save_path + 'ros/'
-save_path_smote = save_path + 'smote/'
+save_path_smote = save_path + 'smote_variants/'
 save_path_smoten = save_path + 'smoten/'
 save_path_borderline_1 = save_path + 'borderline_1/'
 save_path_borderline_2 = save_path + 'borderline_2/'

@@ -11,7 +11,7 @@ from sklearn import clone
 
 from config import datasetnames_final_1, num_run, file_path
 from config import columns_dataset, columns_datasets, scoring
-from smote.mtgp_smote.mtgp_smote import MTGPSMOTESampler
+from smote_variants.mtgp_smote.mtgp_smote import MTGPSMOTESampler
 
 warnings.filterwarnings("ignore")  # 忽略警告
 
