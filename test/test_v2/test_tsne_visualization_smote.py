@@ -9,7 +9,7 @@ from data_preprocess import data_loader, data_preprocess
 import warnings
 
 from config import datasetnames_1, num_run, file_path
-from smote_variants.gp_smote_c4_v2.visualize import tsne_visualization_binary
+from smote_variants.gp_smote_population.visualize import tsne_visualization_binary
 from smote_variants.mtgp_smote_res_only.mtgp_smote import MTGPSMOTESampler
 
 warnings.filterwarnings("ignore")  # 忽略警告

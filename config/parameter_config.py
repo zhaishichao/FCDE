@@ -38,29 +38,9 @@ datasetnames_instances = ['appendicitis', 'iris0', 'cleveland-0-vs-4', 'sonar', 
                           'chess', 'shuttle-2-vs-5', 'spambase', 'banana', 'phoneme', 'page-blocks0', 'twonorm', 'ring',
                           'coil2000', 'magic', 'adult']
 
-datasetnames_1 = ['appendicitis', 'iris0', 'cleveland-0-vs-4', 'sonar', 'glass1', 'twonorm', 'ring', 'coil2000',
-                  'magic', 'adult']
-
-datasetnames_2 = ['glass0', 'new-thyroid1', 'shuttle-6-vs-2-3', 'heart', 'ecoli-0-1-4-6-vs-5', 'shuttle-2-vs-5',
-                  'spambase', 'banana', 'phoneme', 'page-blocks0']
-
-datasetnames_3 = ['haberman', 'ecoli1', 'ecoli2', 'ecoli3', 'ionosphere', 'titanic', 'kddcup-rootkit-imap-vs-back',
-                  'kr-vs-k-one-vs-fifteen', 'segment0', 'chess']
-
-datasetnames_4 = ['dermatology-6', 'led7digit-0-2-4-5-6-7-8-9-vs-1', 'yeast-1-vs-7', 'yeast-2-vs-8', 'wdbc',
-                  'poker-8-9-vs-6', 'car-good', 'shuttle-c0-vs-c4', 'abalone-20-vs-8-9-10', 'poker-8-9-vs-5']
-
-datasetnames_5 = ['winequality-red-8-vs-6', 'wisconsin', 'australian', 'abalone9-18', 'pima', 'vehicle2',
-                  'winequality-red-8-vs-6-7', 'winequality-white-3-vs-7', 'vowel0', 'german',
-                  'yeast-0-2-5-6-vs-3-7-8-9',
-                  'flare-F', 'yeast5', 'yeast1']
-
 datasetnames = ['sonar', 'banana', 'australian', 'heart', 'spambase', 'wdbc', 'wisconsin',
                 'pima', 'iris0', 'glass0', 'german', 'phoneme', 'yeast1', 'vehicle2',
                 'ecoli1', 'appendicitis', 'new-thyroid1', 'ecoli2', 'segment0',
                 'yeast-0-2-5-6-vs-3-7-8-9', 'led7digit-0-2-4-5-6-7-8-9-vs-1',
                 'cleveland-0-vs-4', 'yeast-1-vs-7', 'shuttle-6-vs-2-3', 'yeast-2-vs-8',
                 'winequality-red-8-vs-6-7', 'shuttle-2-vs-5']
-
-datasetnames_1 = ['heart', 'wisconsin', 'pima', 'shuttle-2-vs-5']
-datasetnames_2 = ['wisconsin']

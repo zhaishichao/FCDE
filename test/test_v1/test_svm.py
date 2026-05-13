@@ -6,7 +6,7 @@ import pandas as pd
 import os
 from smote_variants.dg_smote import DGSMOTE
 from data_preprocess import data_loader, data_preprocess
-from smote_variants.gp_smote_c4_v1 import DSSMOTE
+from smote_variants.gp_smote_feasible import DSSMOTE
 import warnings
 from sklearn import clone
 

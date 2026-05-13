@@ -5,11 +5,11 @@ import pandas as pd
 import os
 from smote_variants.dg_smote import DGSMOTE
 from data_preprocess import data_loader, data_preprocess
-from smote_variants.gp_smote_c4_v2 import DSSMOTE
+from smote_variants.gp_smote_population import DSSMOTE
 import warnings
 
 from config import datasetnames, num_run, evol_parameter, file_path
-from smote_variants.gp_smote_c4_v2.visualize import tsne_visualization_binary
+from smote_variants.gp_smote_population.visualize import tsne_visualization_binary
 
 warnings.filterwarnings("ignore")  # 忽略警告
 
