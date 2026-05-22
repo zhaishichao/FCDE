@@ -37,7 +37,7 @@ if __name__ == '__main__':
 
     print('########\t 开始执行！\t########')
 
-    for index, datasetname in enumerate(datasetnames[5]):
+    for index, datasetname in enumerate(datasetnames):
         df_ds = pd.DataFrame(columns=columns_dataset)
 
         print('##########\t', '正在处理：', datasetname, '\t##########')
