@@ -10,10 +10,21 @@ from smote_variants.gp_smote_population import DSSMOTE
 import warnings
 from sklearn import clone
 
-from config import datasetnames, num_run, evol_parameter, file_path
+from config import datasetnames, num_run, file_path, EvolutionaryParameterConfig
 from config import columns_dataset, columns_datasets, scoring
 
 warnings.filterwarnings("ignore")  # 忽略警告
+
+
+
+POPSIZE = 500  # 种群大小
+CXPB = 0.8  # 交叉概率
+MUTPB = 0.2  # 变异概率
+NGEN = 100  # 迭代次数
+verbose = False  # 是否打印信息
+
+evol_parameter = EvolutionaryParameterConfig(POPSIZE, CXPB, MUTPB, NGEN, verbose)
+
 
 # 保存路径
 save_path = '../results/gp/knn/'
