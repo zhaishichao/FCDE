@@ -66,7 +66,7 @@ class DSSMOTE:
                                                                  new_instance - self.min_center)
 
     # 6. 进化
-    def evolutionary(self, execution_index=1):
+    def evolutionary(self, execution_index=1, dataset_name=None, run_idx=None):
 
         # 每次执行进化搜索前，对多少类和少数类重新采样
         self.maj_samples = random_sampling(self.data['maj_x'])  # 随机采样多数类样本
@@ -126,7 +126,7 @@ class DSSMOTE:
 
             # 每隔5代记录一次所有个体的第一个目标值
             if gen % 5 == 0:
-                obj1_values = [ind.fitness.values[0] for ind in population]
+                obj1_values = sorted([ind.fitness.values[0] for ind in population], reverse=True)
                 obj1_records.append((gen, obj1_values))
 
         # 最后一代种群
@@ -140,9 +140,16 @@ class DSSMOTE:
         # 保存目标值记录到CSV文件
         if obj1_records:
             project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            save_dir = os.path.join(project_root, 'test', 'results', 'wo_g1')
+            if dataset_name:
+                save_dir = os.path.join(project_root, 'test', 'results', 'wo_g1', dataset_name)
+            else:
+                save_dir = os.path.join(project_root, 'test', 'results', 'wo_g1')
             os.makedirs(save_dir, exist_ok=True)
-            filepath = os.path.join(save_dir, f'obj1_values_{execution_index}.csv')
+            if run_idx is not None:
+                filename = f'obj1_values_{run_idx}_{execution_index}.csv'
+            else:
+                filename = f'obj1_values_{execution_index}.csv'
+            filepath = os.path.join(save_dir, filename)
             with open(filepath, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
                 writer.writerow(['gen', 'obj1_values'])
@@ -152,13 +159,13 @@ class DSSMOTE:
         return synthesis_instances
 
     # 7. 获取合成实例
-    def synthesis_minority_instance(self):
+    def synthesis_minority_instance(self, dataset_name=None, run_idx=None):
         X_syn = []
         curr_syn = 0
         index = 1
         total_syn = len(self.data['maj_y']) - len(self.data['min_y'])
         while curr_syn < total_syn:
-            syn = self.evolutionary(execution_index=index)
+            syn = self.evolutionary(execution_index=index, dataset_name=dataset_name, run_idx=run_idx)
             self.min_samples_and_synthesis = np.vstack((self.min_samples_and_synthesis, syn))
             X_syn = X_syn + syn
             curr_syn = curr_syn + len(syn)
@@ -169,14 +176,14 @@ class DSSMOTE:
         return (X_syn, y_syn)
 
     # 8. 组合训练数据
-    def fit_resample(self):
-        synthesis_instance = self.synthesis_minority_instance()
+    def fit_resample(self, dataset_name=None, run_idx=None):
+        synthesis_instance = self.synthesis_minority_instance(dataset_name=dataset_name, run_idx=run_idx)
         X_resampled = np.vstack((self.X.copy(), synthesis_instance[0]))
         y_resampled = np.hstack((self.y.copy(), synthesis_instance[1]))
         return X_resampled, y_resampled
 
-    def fit_resample_synthesis_only(self):
-        synthesis_instance = self.synthesis_minority_instance()
+    def fit_resample_synthesis_only(self, dataset_name=None, run_idx=None):
+        synthesis_instance = self.synthesis_minority_instance(dataset_name=dataset_name, run_idx=run_idx)
         X_resampled_synthes = np.array(synthesis_instance[0])
         y_resampled_synthes = np.array(synthesis_instance[1])
         return X_resampled_synthes, y_resampled_synthes

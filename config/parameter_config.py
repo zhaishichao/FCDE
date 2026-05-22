@@ -38,7 +38,13 @@ datasetnames_instances = ['appendicitis', 'iris0', 'cleveland-0-vs-4', 'sonar', 
                           'chess', 'shuttle-2-vs-5', 'spambase', 'banana', 'phoneme', 'page-blocks0', 'twonorm', 'ring',
                           'coil2000', 'magic', 'adult']
 
-datasetnames = ['sonar', 'banana', 'australian', 'heart', 'spambase', 'wdbc', 'wisconsin',
+# datasetnames = ['sonar', 'banana', 'australian', 'heart', 'spambase', 'wdbc', 'wisconsin',
+#                 'pima', 'iris0', 'glass0', 'german', 'phoneme', 'yeast1', 'vehicle2',
+#                 'ecoli1', 'appendicitis', 'new-thyroid1', 'ecoli2', 'segment0',
+#                 'yeast-0-2-5-6-vs-3-7-8-9', 'led7digit-0-2-4-5-6-7-8-9-vs-1',
+#                 'cleveland-0-vs-4', 'yeast-1-vs-7', 'shuttle-6-vs-2-3', 'yeast-2-vs-8',
+#                 'winequality-red-8-vs-6-7', 'shuttle-2-vs-5']
+datasetnames = ['australian', 'heart', 'spambase', 'wdbc', 'wisconsin',
                 'pima', 'iris0', 'glass0', 'german', 'phoneme', 'yeast1', 'vehicle2',
                 'ecoli1', 'appendicitis', 'new-thyroid1', 'ecoli2', 'segment0',
                 'yeast-0-2-5-6-vs-3-7-8-9', 'led7digit-0-2-4-5-6-7-8-9-vs-1',

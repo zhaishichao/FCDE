@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
             # GPSMOTE (wo G1)
             ds = DSSMOTE(X=X_train, y=y_train, evol_parameter=evol_parameter)
-            X_train_resampled, y_train_resampled = ds.fit_resample()
+            X_train_resampled, y_train_resampled = ds.fit_resample(dataset_name=datasetname, run_idx=i)
             X_shuffled, y_shuffled = shuffle(X_train_resampled, y_train_resampled, random_state=42 + i)
             y_pred, y_prob = fit_pred(X_shuffled, y_shuffled.astype('int'), X_test=X_test, clf=clone(clf),
                                       soft_lable=True)
