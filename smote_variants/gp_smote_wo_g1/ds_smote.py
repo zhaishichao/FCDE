@@ -1,3 +1,5 @@
+import csv
+import os
 import numpy as np
 from deap import tools
 from deap.algorithms import varAnd
@@ -64,7 +66,7 @@ class DSSMOTE:
                                                                  new_instance - self.min_center)
 
     # 6. 进化
-    def evolutionary(self):
+    def evolutionary(self, execution_index=1):
 
         # 每次执行进化搜索前，对多少类和少数类重新采样
         self.maj_samples = random_sampling(self.data['maj_x'])  # 随机采样多数类样本
@@ -88,6 +90,7 @@ class DSSMOTE:
 
         # 进化搜索
         cv_list = []  # 存储约束违反程度（用于绘制收敛曲线）
+        obj1_records = []  # 每隔5代记录所有个体的第一个目标值
         # print('########### \t Start the evolution! \t ##########')
         for gen in range(0, self.parameter.NGEN):
             parent = self.toolbox.selTournament(population, self.parameter.POPSIZE)  # 选择父本
@@ -121,6 +124,11 @@ class DSSMOTE:
             # 记录一下约束值去的变化
             cv_list.append(np.mean([ind.fitness.cv for ind in population]))
 
+            # 每隔5代记录一次所有个体的第一个目标值
+            if gen % 5 == 0:
+                obj1_values = [ind.fitness.values[0] for ind in population]
+                obj1_records.append((gen, obj1_values))
+
         # 最后一代种群
         synthesis_instances = []
         for ind in population:
@@ -128,6 +136,18 @@ class DSSMOTE:
             synthesis_instance = func(*self.data['min_x'])
             synthesis_instances.append(synthesis_instance)
         self.cv_list = cv_list
+
+        # 保存目标值记录到CSV文件
+        if obj1_records:
+            project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            save_dir = os.path.join(project_root, 'test', 'results', 'wo_g1')
+            os.makedirs(save_dir, exist_ok=True)
+            filepath = os.path.join(save_dir, f'obj1_values_{execution_index}.csv')
+            with open(filepath, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(['gen', 'obj1_values'])
+                for gen, vals in obj1_records:
+                    writer.writerow([gen, vals])
 
         return synthesis_instances
 
@@ -138,7 +158,7 @@ class DSSMOTE:
         index = 1
         total_syn = len(self.data['maj_y']) - len(self.data['min_y'])
         while curr_syn < total_syn:
-            syn = self.evolutionary()
+            syn = self.evolutionary(execution_index=index)
             self.min_samples_and_synthesis = np.vstack((self.min_samples_and_synthesis, syn))
             X_syn = X_syn + syn
             curr_syn = curr_syn + len(syn)
