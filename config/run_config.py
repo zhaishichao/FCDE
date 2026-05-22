@@ -8,7 +8,7 @@ datasetnames_final_1 = ['australian', 'heart', 'spambase', 'wdbc', 'wisconsin',
                         'cleveland-0-vs-4', 'yeast-1-vs-7', 'shuttle-6-vs-2-3', 'yeast-2-vs-8',
                         'winequality-red-8-vs-6-7', 'shuttle-2-vs-5']
 
-num_run = 2
+num_run = 30
 
 POPSIZE = 30  # 种群大小
 CXPB = 0.8  # 交叉概率

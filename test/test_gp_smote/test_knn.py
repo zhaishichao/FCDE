@@ -1,0 +1,64 @@
+from sklearn.neighbors import KNeighborsClassifier
+
+from metric import fit_pred, metric
+from sklearn.utils import shuffle
+import pandas as pd
+import os
+from data_preprocess import data_loader, data_preprocess
+from smote_variants.gp_smote_population import DSSMOTE
+import warnings
+from sklearn import clone
+
+from config import datasetnames, file_path, EvolutionaryParameterConfig
+from config import columns_dataset, columns_datasets, scoring
+
+warnings.filterwarnings("ignore")  # 忽略警告
+num_run = 30
+POPSIZE = 500  # 种群大小
+CXPB = 0.8  # 交叉概率
+MUTPB = 0.2  # 变异概率
+NGEN = 100  # 迭代次数
+verbose = False  # 是否打印信息
+
+evol_parameter = EvolutionaryParameterConfig(POPSIZE, CXPB, MUTPB, NGEN, verbose)
+
+
+# 保存路径
+save_path = '../results/gp_big_pop/knn/'
+save_path_ds = save_path + 'ds/'
+if not os.path.exists(save_path):
+    os.makedirs(save_path)
+if not os.path.exists(save_path_ds):
+    os.makedirs(save_path_ds)
+
+if __name__ == '__main__':
+
+    df_mean_ds = pd.DataFrame(columns=columns_datasets)
+
+    print('########\t 开始执行！\t########')
+
+    for index, datasetname in enumerate(datasetnames[5]):
+        df_ds = pd.DataFrame(columns=columns_dataset)
+
+        print('##########\t', '正在处理：', datasetname, '\t##########')
+        X, y = data_loader(file_path + datasetname + '.dat')
+        num_instances, num_features = X.shape
+        for i in range(num_run):
+            clf = KNeighborsClassifier()
+            X_train, X_test, y_train, y_test = data_preprocess(X, y, standard=True, random_state=42 + i)
+
+            # GPSMOTE
+            ds = DSSMOTE(X=X_train, y=y_train, evol_parameter=evol_parameter)
+            X_train_resampled, y_train_resampled = ds.fit_resample()
+            X_shuffled, y_shuffled = shuffle(X_train_resampled, y_train_resampled, random_state=42 + i)
+            y_pred, y_prob = fit_pred(X_shuffled, y_shuffled.astype('int'), X_test=X_test, clf=clone(clf), soft_lable=True)
+            result_ds = metric(y_test.astype('int'), y_pred, y_prob, scoring)
+            df_ds.loc[i] = [result_ds['f1_macro'], result_ds['g_mean'], result_ds['roc_auc_ovr']]
+
+        df_mean_ds.loc[index] = [datasetname, num_instances, num_features, df_ds['F-measure'].mean(),
+                                 df_ds['G-mean'].mean(), df_ds['AUC'].mean()]
+
+        df_ds.to_csv(save_path_ds + datasetname + '.csv', encoding='utf_8_sig', index=False)
+        df_mean_ds.to_csv(save_path + 'mean_ds.csv', encoding='utf_8_sig', index=False)
+
+    print('########\t 结束执行！\t########')
