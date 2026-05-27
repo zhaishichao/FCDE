@@ -27,7 +27,7 @@ class DSSMOTE:
         self.ave_max_distance = None  # 少数类中心的平均最大距离
         self.min_avg_distance = compute_avg_distance(self.data['min_x']) / 2  # 少数类实例间的平均距离
 
-        self.pset, self.toolbox = init_toolbox(len(self.data['min_x']), self.data['min_x'].shape[1])
+        self.pset, self.toolbox = init_toolbox(len(self.data['min_x']))
         self.toolbox.register("evaluate", self.evaluate)
         self.toolbox.register("selTournament", selTournament_cv)
 
@@ -88,6 +88,7 @@ class DSSMOTE:
 
         # 进化搜索
         cv_list = []  # 存储约束违反程度（用于绘制收敛曲线）
+        feasible_ratio_list = []  # 每5代记录可行解占比
         # print('########### \t Start the evolution! \t ##########')
         for gen in range(0, self.parameter.NGEN):
             parent = self.toolbox.selTournament(population, self.parameter.POPSIZE)  # 选择父本
@@ -118,8 +119,15 @@ class DSSMOTE:
                     feasible_pop)]  # 加入不可行个体中违约程度小的个体，保证pop数量为POPSIZE
 
             # print(f'第{gen}代平均约束值', calculate_mean_inndividuals_cv(population, thresholds))
-            # 记录一下约束值去的变化
+            # 记录一下约束值的变化
             cv_list.append(np.mean([ind.fitness.cv for ind in population]))
+
+            # 每5代记录可行解占比
+            if gen % 5 == 0:
+                feasible_pop, _ = get_feasible_infeasible(population, thresholds)
+                ratio = len(feasible_pop) / len(population)
+                feasible_ratio_list.append(ratio)
+                print(f'第{gen}代 可行解占比: {ratio:.2%} ({len(feasible_pop)}/{len(population)})')
 
         # 最后一代种群
         synthesis_instances = []
@@ -128,6 +136,7 @@ class DSSMOTE:
             synthesis_instance = func(*self.data['min_x'])
             synthesis_instances.append(synthesis_instance)
         self.cv_list = cv_list
+        self.feasible_ratio_list = feasible_ratio_list
 
         return synthesis_instances
 

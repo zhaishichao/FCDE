@@ -13,14 +13,14 @@ def protectedDiv(left, right):
             x = 1
     return x
 
-def init_toolbox(arity, n_dim):
+def init_toolbox(arity):
     # 创建GP框架的基本组件
     pset = gp.PrimitiveSet("MAIN", arity, 'x')
     pset.addPrimitive(operator.add, 2)
     pset.addPrimitive(operator.sub, 2)
     pset.addPrimitive(operator.mul, 2)
     pset.addPrimitive(protectedDiv, 2)
-    pset.addEphemeralConstant("rand101", lambda: np.full(n_dim, np.random.uniform(0, 1)))
+    pset.addEphemeralConstant("rand101", lambda: np.random.uniform(0, 1))
 
     # 创建适应度和GP个体
     creator.create("FitnessMulti", base.Fitness, weights=(1.0, 1.0))

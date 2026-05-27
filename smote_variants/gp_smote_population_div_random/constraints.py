@@ -29,10 +29,10 @@ def calculate_constraint_thresholds(individuals, avg_distance=None):
 def cv(ind, thresholds):
     cvs = []
     cvs.append(max(0, (thresholds['avg_distance'] - ind.distance_minority_min) / thresholds['max_g1']))
-    cvs.append(max(0, (0 - ind.fitness.values[0]) / thresholds['max_g2']))
+    # cvs.append(max(0, (0 - ind.fitness.values[0]) / thresholds['max_g2']))
     cvs.append(max(0, ind.distance_minority_center / thresholds['max_g3']))
     cvs.append(max(0, (ind.cosine_angle - 90) / thresholds['max_g4']))
-    cv = sum(cvs) / 4  # 求0和cv中的最小值之和，cv=0，表示是一个可行个体
+    cv = sum(cvs) / 3  # 求0和cv中的最小值之和，cv=0，表示是一个可行个体
     ind.fitness.cv = cv  # 将cv值保存在个体中
     return cv
 
