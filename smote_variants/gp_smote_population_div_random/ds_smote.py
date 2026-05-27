@@ -27,7 +27,7 @@ class DSSMOTE:
         self.ave_max_distance = None  # 少数类中心的平均最大距离
         self.min_avg_distance = compute_avg_distance(self.data['min_x']) / 2  # 少数类实例间的平均距离
 
-        self.pset, self.toolbox = init_toolbox(len(self.data['min_x']))
+        self.pset, self.toolbox = init_toolbox(len(self.data['min_x']), self.data['min_x'].shape[1])
         self.toolbox.register("evaluate", self.evaluate)
         self.toolbox.register("selTournament", selTournament_cv)
 
