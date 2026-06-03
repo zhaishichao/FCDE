@@ -15,7 +15,7 @@ from config import columns_dataset, columns_datasets, scoring
 warnings.filterwarnings("ignore")  # 忽略警告
 
 # 保存路径
-save_path = '../results/gp_smote_population_div_random/knn/'
+save_path = '../results/gp_smote_population_div_random_obj_1/knn/'
 save_path_ds = save_path + 'gp/'
 # 检查目录是否存在，如果不存在则创建
 if not os.path.exists(save_path):

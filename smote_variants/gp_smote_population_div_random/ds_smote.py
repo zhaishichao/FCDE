@@ -122,12 +122,19 @@ class DSSMOTE:
             # 记录一下约束值的变化
             cv_list.append(np.mean([ind.fitness.cv for ind in population]))
 
-            # 每5代记录可行解占比
-            if gen % 5 == 0:
+            # 每5代记录可行解占比和第一个目标值<0的个体数
+            if gen % 20 == 0:
                 feasible_pop, _ = get_feasible_infeasible(population, thresholds)
                 ratio = len(feasible_pop) / len(population)
                 feasible_ratio_list.append(ratio)
-                print(f'第{gen}代 可行解占比: {ratio:.2%} ({len(feasible_pop)}/{len(population)})')
+                obj1_lt_zero = sum(1 for ind in population if ind.fitness.values[0] < 0)
+                print(f'第{gen}代 可行解占比: {ratio:.2%} ({len(feasible_pop)}/{len(population)})  '
+                      f'目标1<0个体数: {obj1_lt_zero}/{len(population)}')
+
+        # 规范化检查：去除不包含任何特征变量（x0, x1, ...）的个体
+        feature_names = [f'x{i}' for i in range(len(self.data['min_x']))]
+        population = [ind for ind in population
+                      if any(fn in str(ind) for fn in feature_names)]
 
         # 最后一代种群
         synthesis_instances = []
