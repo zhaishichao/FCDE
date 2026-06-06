@@ -108,28 +108,30 @@ class DSSMOTE:
                 population = remove_duplicate_individuals(population)
 
             # 环境选择
-            feasible_pop, infeasible_pop = get_feasible_infeasible(population, thresholds)  # 得到可行个体与不可行个体
-            if len(feasible_pop) >= self.parameter.POPSIZE:
-                population = self.toolbox.select(feasible_pop, self.parameter.POPSIZE)
-            elif len(feasible_pop) > 0:
-                population = feasible_pop + infeasible_pop[:self.parameter.POPSIZE - len(
-                    feasible_pop)]  # 在不可行个体中选取违约程度小的个体，保证pop数量为POPSIZE
-            else:
-                population = feasible_pop + infeasible_pop[:self.parameter.POPSIZE - len(
-                    feasible_pop)]  # 加入不可行个体中违约程度小的个体，保证pop数量为POPSIZE
+
+            # feasible_pop, infeasible_pop = get_feasible_infeasible(population, thresholds)  # 得到可行个体与不可行个体
+            # if len(feasible_pop) >= self.parameter.POPSIZE:
+            #     population = self.toolbox.select(feasible_pop, self.parameter.POPSIZE)
+            # elif len(feasible_pop) > 0:
+            #     population = feasible_pop + infeasible_pop[:self.parameter.POPSIZE - len(
+            #         feasible_pop)]  # 在不可行个体中选取违约程度小的个体，保证pop数量为POPSIZE
+            # else:
+            #     population = feasible_pop + infeasible_pop[:self.parameter.POPSIZE - len(
+            #         feasible_pop)]  # 加入不可行个体中违约程度小的个体，保证pop数量为POPSIZE
+
+            population = self.toolbox.select(population, self.parameter.POPSIZE)
 
             # print(f'第{gen}代平均约束值', calculate_mean_inndividuals_cv(population, thresholds))
             # 记录一下约束值的变化
-            cv_list.append(np.mean([ind.fitness.cv for ind in population]))
 
             # 每5代记录可行解占比和第一个目标值<0的个体数
-            if gen % 20 == 0:
-                feasible_pop, _ = get_feasible_infeasible(population, thresholds)
-                ratio = len(feasible_pop) / len(population)
-                feasible_ratio_list.append(ratio)
-                obj1_lt_zero = sum(1 for ind in population if ind.fitness.values[0] < 0)
-                print(f'第{gen}代 可行解占比: {ratio:.2%} ({len(feasible_pop)}/{len(population)})  '
-                      f'目标1<0个体数: {obj1_lt_zero}/{len(population)}')
+            # if gen % 20 == 0:
+            #     feasible_pop, _ = get_feasible_infeasible(population, thresholds)
+            #     ratio = len(feasible_pop) / len(population)
+            #     feasible_ratio_list.append(ratio)
+            #     obj1_lt_zero = sum(1 for ind in population if ind.fitness.values[0] < 0)
+            #     print(f'第{gen}代 可行解占比: {ratio:.2%} ({len(feasible_pop)}/{len(population)})  '
+            #           f'目标1<0个体数: {obj1_lt_zero}/{len(population)}')
 
         # 规范化检查：去除不包含任何特征变量（x0, x1, ...）的个体
         feature_names = [f'x{i}' for i in range(len(self.data['min_x']))]
