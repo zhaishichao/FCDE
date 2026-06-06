@@ -6,7 +6,7 @@ from .data_preprocess import separate_maj_min, random_sampling, calculate_center
     minority_class_proportion, calculate_cosine_angle, calculate_min_distance, compute_avg_distance
 from .initialization import init_toolbox
 
-from .operators import remove_duplicate_individuals, selTournament_cv
+from .operators import remove_duplicate_individuals, selTournament_domination
 from .visualize import curve_fitting
 
 
@@ -29,7 +29,7 @@ class DSSMOTE:
 
         self.pset, self.toolbox = init_toolbox(len(self.data['min_x']))
         self.toolbox.register("evaluate", self.evaluate)
-        self.toolbox.register("selTournament", selTournament_cv)
+        self.toolbox.register("selTournament", selTournament_domination)
 
         self.cv_list = []
 
@@ -91,6 +91,7 @@ class DSSMOTE:
         feasible_ratio_list = []  # 每5代记录可行解占比
         # print('########### \t Start the evolution! \t ##########')
         for gen in range(0, self.parameter.NGEN):
+            population = self.toolbox.select(population, self.parameter.POPSIZE)  # 选择父本
             parent = self.toolbox.selTournament(population, self.parameter.POPSIZE)  # 选择父本
             offspring = varAnd(parent, self.toolbox, self.parameter.CXPB, self.parameter.MUTPB)  # 交叉、变异
             self.toolbox.evaluate(offspring)  # 评估变异后父本

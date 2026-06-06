@@ -1,4 +1,5 @@
 from deap import tools
+import random
 
 
 def selTournament_cv(individuals, k):
@@ -32,3 +33,24 @@ def remove_duplicate_individuals(individuals):
             seen.add(key)
             result.append(ind)
     return result
+
+
+def selTournament_domination(individuals, k):
+    """基于 Pareto 支配 + 拥挤距离的锦标赛选择，选 k 个个体"""
+    chosen = []
+    while len(chosen) < k:
+        aspirants = tools.selRandom(individuals, 2)
+        ind1, ind2 = aspirants[0], aspirants[1]
+
+        if ind1.fitness.dominates(ind2.fitness):
+            chosen.append(ind1)
+        elif ind2.fitness.dominates(ind1.fitness):
+            chosen.append(ind2)
+        else:
+            if ind1.fitness.crowding_dist > ind2.fitness.crowding_dist:
+                chosen.append(ind1)
+            elif ind2.fitness.crowding_dist > ind1.fitness.crowding_dist:
+                chosen.append(ind2)
+            else:
+                chosen.append(ind1 if random.random() <= 0.5 else ind2)
+    return chosen
