@@ -9,8 +9,8 @@ import pandas as pd
 # 格式A：双指标（F-measure + AUC），每组4个方法，GP-SMOTE 在每组最后一列
 # CONFIG = {
 #     "table_file": "table.txt",
-#     "mean_output": "table_mean_values.csv",
-#     "rank_output": "table_rankings.csv",
+#     "mean_output": "table_mean_values_table2.csv",
+#     "rank_output": "table_rankings_table2.csv",
 #     "groups": [
 #         {
 #             "name": "F-measure",
@@ -27,12 +27,12 @@ import pandas as pd
 
 # 格式B：单指标，7个方法，GP-SMOTE 在最后一列
 CONFIG = {
-    "table_file": "table.txt",
-    "mean_output": "table_mean_values.csv",
-    "rank_output": "table_rankings.csv",
+    "table_file": "table2.txt",
+    "mean_output": "table_mean_values_table2.csv",
+    "rank_output": "table_rankings_table2.csv",
     "groups": [
         {
-            "name": "F-measure",
+            "name": "AUC",
             "methods": ["Original", "ROS", "SMOTE", "KMeans-SMOTE",
                         "Borderline-1", "Borderline-2", "GP-SMOTE"],
             "col_range": (1, 8),

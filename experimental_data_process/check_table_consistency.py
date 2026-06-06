@@ -91,36 +91,36 @@ def check_group(cells, method_names, group_name):
 # 表格结构配置（修改此处切换格式）
 # ============================================================
 # 格式A：双指标（F-measure + AUC），每组4个方法
-# CONFIG = {
-#     "table_file": "table.txt",
-#     "output_file": "table_check_result.csv",
-#     "groups": [
-#         {
-#             "name": "F-measure",
-#             "methods": ["DG-SMOTE", "MTGP-SMOTE", "Blind-SMOTE", "GP-SMOTE"],
-#             "col_range": (1, 5),
-#         },
-#         {
-#             "name": "AUC",
-#             "methods": ["DG-SMOTE", "MTGP-SMOTE", "Blind-SMOTE", "GP-SMOTE"],
-#             "col_range": (5, 9),
-#         },
-#     ],
-# }
-
-# 格式B：单指标，7个方法（GP-SMOTE 在最后一列）
 CONFIG = {
     "table_file": "table.txt",
     "output_file": "table_check_result.csv",
     "groups": [
         {
             "name": "F-measure",
-            "methods": ["Original", "ROS", "SMOTE", "KMeans-SMOTE",
-                        "Borderline-1", "Borderline-2", "GP-SMOTE"],
-            "col_range": (1, 8),
+            "methods": ["DG-SMOTE", "MTGP-SMOTE", "Blind-SMOTE", "GP-SMOTE"],
+            "col_range": (1, 5),
+        },
+        {
+            "name": "AUC",
+            "methods": ["DG-SMOTE", "MTGP-SMOTE", "Blind-SMOTE", "GP-SMOTE"],
+            "col_range": (5, 9),
         },
     ],
 }
+
+# 格式B：单指标，7个方法（GP-SMOTE 在最后一列）
+# CONFIG = {
+#     "table_file": "table.txt",
+#     "output_file": "table_check_result.csv",
+#     "groups": [
+#         {
+#             "name": "F-measure",
+#             "methods": ["Original", "ROS", "SMOTE", "KMeans-SMOTE",
+#                         "Borderline-1", "Borderline-2", "GP-SMOTE"],
+#             "col_range": (1, 8),
+#         },
+#     ],
+# }
 
 # 格式A：双指标（F-measure + AUC），每组4个方法
 # CONFIG = {
