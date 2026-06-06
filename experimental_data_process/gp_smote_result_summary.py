@@ -20,7 +20,7 @@ metrics = ["F-measure", "AUC"]
 
 def format_std(std):
     if std == 0:
-        return "0.00e0"
+        return "0.00"
     exp = int(np.floor(np.log10(std)))
     base = std / (10 ** exp)
     return f"{base:.2f}e{exp}"
