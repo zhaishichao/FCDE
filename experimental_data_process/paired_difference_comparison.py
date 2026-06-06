@@ -56,8 +56,9 @@ else:
     df_auc = df_auc.reset_index(drop=True)
     sort_label = "Sorted by Dataset"
 
-colors = ['#0DC0C9', '#FD8251']
-colors = ['#FD8251', '#0DC0C9']
+# colors = ['#0DC0C9', '#FD8251']
+# colors = ['#FD8251', '#0DC0C9']
+colors = ['#6FB5E5', '#7ABD7A']
 # 设置颜色
 colors_f1 = [colors[0] if x < 0 else colors[1] for x in df_f1['Difference']]
 colors_auc = [colors[0] if x < 0 else colors[1] for x in df_auc['Difference']]
