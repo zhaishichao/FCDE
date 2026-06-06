@@ -8,11 +8,10 @@ def parse_cell(cell):
     cell = cell.strip()
     has_hl = cell.startswith("\\hl{")
     if has_hl:
-        inner = cell[4:-1]  # 去掉 \hl{ 和 }
+        inner = cell[4:-1]
     else:
         inner = cell
 
-    # 提取符号
     symbol = None
     if inner.endswith("$+$"):
         symbol = "+"
@@ -24,42 +23,32 @@ def parse_cell(cell):
         symbol = "≈"
         inner = inner[:-9]
 
-    # 提取均值：括号前的数字
     m = re.match(r"([\d.]+)\(.*\)", inner)
-    if m:
-        mean = float(m.group(1))
-    else:
-        mean = None
+    mean = float(m.group(1)) if m else None
     return mean, has_hl, symbol
 
 
-def parse_line(line):
-    """解析一行 LaTeX 表格数据，返回 (d_label, fmeasure_cells, auc_cells)
-    每个 cell 为 (mean, has_hl, symbol)"""
+def parse_line(line, expected_cols):
+    """解析一行，返回 (d_label, cells)"""
     stripped = line.strip()
     if not stripped:
         return None
-
     parts = stripped.split(" & ")
-    # 去掉末尾的 \\
     if parts[-1].endswith(" \\\\"):
         parts[-1] = parts[-1][:-3]
-
-    if len(parts) != 9:
+    if len(parts) != expected_cols:
         return None
-
     d_label = parts[0].strip()
-    fmeasure_cells = [parse_cell(parts[i]) for i in range(1, 5)]
-    auc_cells = [parse_cell(parts[i]) for i in range(5, 9)]
-    return d_label, fmeasure_cells, auc_cells
+    cells = [parse_cell(parts[i]) for i in range(1, expected_cols)]
+    return d_label, cells
 
 
-def check_group(cells, group_name):
-    """检查一组 4 个 cell（最后一个为 GP-SMOTE），返回异常列表"""
+def check_group(cells, method_names, group_name):
+    """检查一组 cell（最后一个为 GP-SMOTE），返回异常列表"""
     results = []
-    gp_mean = cells[3][0]  # GP-SMOTE 的均值
+    n = len(cells)
+    gp_mean = cells[n - 1][0]
 
-    # 找出该组最大值
     means = [c[0] for c in cells if c[0] is not None]
     max_val = max(means) if means else None
 
@@ -67,11 +56,11 @@ def check_group(cells, group_name):
         if mean is None:
             continue
 
-        col_name = f"{group_name}-{'M' + str(i+1) if i < 3 else 'GP'}"
+        col_name = method_names[i]
         anomalies = []
 
         # === Wilcoxon 符号检查（仅非 GP-SMOTE 列） ===
-        if i < 3 and symbol is not None and gp_mean is not None:
+        if i < n - 1 and symbol is not None and gp_mean is not None:
             if symbol == "+" and mean >= gp_mean:
                 anomalies.append(f"符号为+但{mean:.2f}>={gp_mean:.2f}")
             elif symbol == "-" and mean <= gp_mean:
@@ -90,7 +79,7 @@ def check_group(cells, group_name):
             "Column": col_name,
             "Mean": mean,
             "Symbol": symbol if symbol else "",
-            "GP_Mean": gp_mean if i < 3 else "",
+            "GP_Mean": gp_mean if i < n - 1 else "",
             "Has_HL": has_hl,
             "Is_Max": (mean == max_val) if max_val is not None else False,
             "Status": anomaly_str
@@ -98,40 +87,98 @@ def check_group(cells, group_name):
     return results
 
 
+# ============================================================
+# 表格结构配置（修改此处切换格式）
+# ============================================================
+# 格式A：双指标（F-measure + AUC），每组4个方法
+# CONFIG = {
+#     "table_file": "table.txt",
+#     "output_file": "table_check_result.csv",
+#     "groups": [
+#         {
+#             "name": "F-measure",
+#             "methods": ["DG-SMOTE", "MTGP-SMOTE", "Blind-SMOTE", "GP-SMOTE"],
+#             "col_range": (1, 5),
+#         },
+#         {
+#             "name": "AUC",
+#             "methods": ["DG-SMOTE", "MTGP-SMOTE", "Blind-SMOTE", "GP-SMOTE"],
+#             "col_range": (5, 9),
+#         },
+#     ],
+# }
+
+# 格式B：单指标，7个方法（GP-SMOTE 在最后一列）
+CONFIG = {
+    "table_file": "table.txt",
+    "output_file": "table_check_result.csv",
+    "groups": [
+        {
+            "name": "F-measure",
+            "methods": ["Original", "ROS", "SMOTE", "KMeans-SMOTE",
+                        "Borderline-1", "Borderline-2", "GP-SMOTE"],
+            "col_range": (1, 8),
+        },
+    ],
+}
+
+# 格式A：双指标（F-measure + AUC），每组4个方法
+# CONFIG = {
+#     "table_file": "table.txt",
+#     "output_file": "table_check_result.csv",
+#     "groups": [
+#         {
+#             "name": "F-measure",
+#             "methods": ["DG-SMOTE", "MTGP-SMOTE", "Blind-SMOTE", "GP-SMOTE"],
+#             "col_range": (1, 5),
+#         },
+#         {
+#             "name": "AUC",
+#             "methods": ["DG-SMOTE", "MTGP-SMOTE", "Blind-SMOTE", "GP-SMOTE"],
+#             "col_range": (5, 9),
+#         },
+#     ],
+# }
+# ============================================================
+
+
 def main():
-    txt_path = os.path.join(os.path.dirname(__file__), "table.txt")
-    output_path = os.path.join(os.path.dirname(__file__), "table_check_result.csv")
+    out_dir = os.path.dirname(__file__)
+    txt_path = os.path.join(out_dir, CONFIG["table_file"])
+    output_path = os.path.join(out_dir, CONFIG["output_file"])
 
     with open(txt_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
+    # 计算总列数 = 1(数据集) + 各组列数之和
+    total_cols = 1 + sum(g["col_range"][1] - g["col_range"][0] for g in CONFIG["groups"])
+    # 取所有组中最大的结束列号作为预期列数
+    max_col = max(g["col_range"][1] for g in CONFIG["groups"])
+    expected_cols = 1 + max_col - min(g["col_range"][0] for g in CONFIG["groups"])
+    expected_cols = max_col  # 总共有 max_col 列（数据集在 0）
+
     all_rows = []
     for line in lines:
-        parsed = parse_line(line)
+        parsed = parse_line(line, max_col)
         if parsed is None:
             continue
-        d_label, fmeasure_cells, auc_cells = parsed
+        d_label, all_cells = parsed
 
-        f_results = check_group(fmeasure_cells, "F-measure")
-        for r in f_results:
-            r["Dataset"] = d_label
-            r["Group"] = "F-measure"
-        all_rows.extend(f_results)
+        for group_cfg in CONFIG["groups"]:
+            start, end = group_cfg["col_range"]
+            group_cells = all_cells[start - 1:end - 1]
+            group_results = check_group(group_cells, group_cfg["methods"], group_cfg["name"])
+            for r in group_results:
+                r["Dataset"] = d_label
+                r["Group"] = group_cfg["name"]
+            all_rows.extend(group_results)
 
-        auc_results = check_group(auc_cells, "AUC")
-        for r in auc_results:
-            r["Dataset"] = d_label
-            r["Group"] = "AUC"
-        all_rows.extend(auc_results)
-
-    # 写 CSV
     fieldnames = ["Dataset", "Group", "Column", "Mean", "GP_Mean", "Symbol", "Has_HL", "Is_Max", "Status"]
     with open(output_path, "w", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(all_rows)
 
-    # 统计汇总
     anomalies = [r for r in all_rows if r["Status"] != "OK"]
     print(f"总检查项: {len(all_rows)}, 异常项: {len(anomalies)}")
     if anomalies:
