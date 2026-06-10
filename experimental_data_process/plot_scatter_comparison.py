@@ -46,14 +46,15 @@ plt.rcParams["axes.unicode_minus"] = False
 FIG_WIDTH = 11
 FIG_HEIGHT = 5.5
 
+
 # --- 标题 / 坐标轴字号 ---
-TITLE_SIZE = 13
-SUPTITLE_SIZE = 15
-AXIS_LABEL_SIZE = 12
-TICK_SIZE = 10
+TITLE_SIZE = 15
+SUPTITLE_SIZE = 18
+AXIS_LABEL_SIZE = 15.5
+TICK_SIZE = 14
 
 # --- 散点参数 ---
-SCATTER_SIZE = 65            # 点大小
+SCATTER_SIZE = 95            # 点大小
 SCATTER_EDGECOLOR = "white"  # 点边缘色
 SCATTER_LINEWIDTH = 0.6      # 点边缘宽
 SCATTER_ALPHA = 0.85         # 点透明度, 1=完全不透明, 0.3=很淡
@@ -76,12 +77,12 @@ DIAG_ALPHA = 0.4
 MARGIN_PCT = 0.05
 
 # --- 顶部图例（颜色含义说明）---
-LEGEND_SIZE = 12             # 图例字号
+LEGEND_SIZE = 14             # 图例字号
 LEGEND_MARKER_SIZE = 10      # 图例点大小 (数值越大点越大)
 
 # --- 图内统计标注（计数）---
-STAT_LEGEND_SIZE = 10         # 统计字号
-STAT_MARKER_SIZE = 8         # 统计点大小
+STAT_LEGEND_SIZE = 15         # 统计字号
+STAT_MARKER_SIZE = 9         # 统计点大小
 
 # --- 输出 ---
 OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "scatter_comparison.pdf")
@@ -112,7 +113,8 @@ def assign_colors(big_vals, small_vals, epsilon=EPSILON):
 # ============================================================
 # 3. 绘图
 # ============================================================
-fig, axes = plt.subplots(1, 2, figsize=(FIG_WIDTH, FIG_HEIGHT))
+fig, axes = plt.subplots(1, 2, figsize=(FIG_WIDTH, FIG_HEIGHT),
+                        gridspec_kw={"wspace": 0.25})  # wspace: 子图间距, 0=紧贴, 越大间距越大
 
 for ax, metric_name, big_vals, small_vals in [
     (axes[0], "F1-score", f1_big, f1_small),
@@ -164,8 +166,8 @@ for ax, metric_name, big_vals, small_vals in [
     # ----------------------------------------------------------
     # 3d. 坐标轴标签与样式
     # ----------------------------------------------------------
-    ax.set_xlabel("Small Population (%)", fontsize=AXIS_LABEL_SIZE)
-    ax.set_ylabel("Large Population (%)", fontsize=AXIS_LABEL_SIZE)
+    ax.set_xlabel("Small Population (%)", fontsize=AXIS_LABEL_SIZE, fontweight="bold")
+    ax.set_ylabel("Large Population (%)", fontsize=AXIS_LABEL_SIZE, fontweight="bold")
     ax.set_title(metric_name, fontsize=TITLE_SIZE, fontweight="bold")
     ax.tick_params(labelsize=TICK_SIZE)
     ax.set_xlim(ax_min, ax_max)
@@ -203,12 +205,14 @@ for ax, metric_name, big_vals, small_vals in [
         loc="upper left",
         fontsize=STAT_LEGEND_SIZE,
         title="Counts",
+        title_fontsize=STAT_LEGEND_SIZE,
         frameon=True,
         fancybox=True,
         framealpha=0.7,
         edgecolor="gray",
-        borderpad=0.5,
-        handletextpad=0.5,
+        borderpad=0.3,           # 边框内边距, 越小越紧凑
+        handletextpad=0.2,       # 图标与文字间距
+        labelspacing=0.2,        # 条目之间的垂直间距
     )
 
 # ----------------------------------------------------------
@@ -237,13 +241,15 @@ fig.legend(
     ncol=3,
     fontsize=LEGEND_SIZE,
     frameon=False,
+    columnspacing=0.2,         # 列间距, 越小越紧凑
+    handletextpad=0.02,          # 图标与文字间距, 越小越紧凑
     bbox_to_anchor=(0.5, 0.95),
 )
 
 # ----------------------------------------------------------
 # 3g. 总标题
 # ----------------------------------------------------------
-fig.suptitle("GP-SMOTE: Small vs Large Population Size",
+fig.suptitle("GP-SMOTE: Large vs Small Population Size",
              fontsize=SUPTITLE_SIZE, fontweight="bold", y=1.005)
 
 plt.tight_layout(rect=[0, 0, 1, 0.93])
