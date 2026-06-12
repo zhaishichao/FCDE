@@ -5,7 +5,7 @@ from sklearn.utils import shuffle
 import pandas as pd
 import os
 from data_preprocess import data_loader, data_preprocess
-from smote_variants.gp_smote_population_div_random import DSSMOTE
+from smote_variants.gp_smote_population_div_random_woc import DSSMOTE
 import warnings
 from sklearn import clone
 
@@ -15,7 +15,7 @@ from config import columns_dataset, columns_datasets, scoring
 warnings.filterwarnings("ignore")  # 忽略警告
 
 # 保存路径
-save_path = '../results/gp_smote_population_div_random_obj_1/knn/'
+save_path = '../results/gp_smote_population_div_random_woc/knn/'
 save_path_ds = save_path + 'gp/'
 # 检查目录是否存在，如果不存在则创建
 if not os.path.exists(save_path):
@@ -39,7 +39,7 @@ if __name__ == '__main__':
             clf = KNeighborsClassifier()
             X_train, X_test, y_train, y_test = data_preprocess(X, y, standard=True, random_state=42 + i)
 
-            # GPSMOTE (population div random)
+            # GP-SMOTE (population div random without constraints)
             ds = DSSMOTE(X=X_train, y=y_train, evol_parameter=evol_parameter)
             X_train_resampled, y_train_resampled = ds.fit_resample()
             X_shuffled, y_shuffled = shuffle(X_train_resampled, y_train_resampled, random_state=42 + i)
