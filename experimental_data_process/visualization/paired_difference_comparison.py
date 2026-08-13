@@ -53,7 +53,7 @@ legend_labels = ['Negative', 'Positive']      # 图例条目内容（与 colors 
 colors = ['#FFBAA7', '#EF7B5B']
 
 # --- 输出 ---
-output_filename = 'paired_difference_comparison.pdf'   # 保存文件名
+output_filename = '../paired_difference_comparison.pdf'  # 保存文件名
 
 # ============================================================================
 # 字体设置
