@@ -1,3 +1,4 @@
 .idea
-results
+**/results
 .claude
+/experimental_data_process/raw_data/
