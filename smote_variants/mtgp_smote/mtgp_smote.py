@@ -174,19 +174,23 @@ class MTGPSMOTESampler(BaseEstimator):
 
     参数
     ----
-    pop_size      : 种群大小（论文默认 512，演示可用 50-100）
-    n_generations : 进化代数（论文默认 100，演示可用 30-50）
+    pop_size      : 种群大小（论文默认 512）
+    n_generations : 进化代数（论文默认 100）
     cx_rate       : 交叉率（论文默认 0.7）
     mut_rate      : 变异率（论文默认 0.3）
     tournament_k  : 锦标赛大小（论文默认 7）
     max_depth     : GP 树最大深度（默认 4）
     random_state  : 随机种子
     verbose       : 是否打印进化进度
+    res_only      : 是否只返回合成样本 X_syn（由原 mtgp_smote_res_only 合并而来）
+                    False（默认）→ 返回 (X_res, y_res) 完整重采样数据集；
+                    True         → 返回 X_syn（仅合成样本特征矩阵）。
     """
 
-    def __init__(self, pop_size=80, n_generations=40,
+    def __init__(self, pop_size=512, n_generations=100,
                  cx_rate=0.7, mut_rate=0.3, tournament_k=7,
-                 max_depth=4, random_state=None, verbose=False):
+                 max_depth=4, random_state=None, verbose=False,
+                 res_only=False):
         self.pop_size = pop_size
         self.n_generations = n_generations
         self.cx_rate = cx_rate
@@ -195,6 +199,7 @@ class MTGPSMOTESampler(BaseEstimator):
         self.max_depth = max_depth
         self.random_state = random_state
         self.verbose = verbose
+        self.res_only = res_only
 
     def _build_pairs(self, X_min, X_maj, n_synthetic):
         n_min = len(X_min)
@@ -282,8 +287,12 @@ class MTGPSMOTESampler(BaseEstimator):
 
     def fit_resample(self, X, y):
         """
-        过采样：返回平衡后的 (X_resampled, y_resampled)。
-        接口与 imbalanced-learn 兼容。
+        过采样，接口与 imbalanced-learn 兼容。
+
+        Returns
+        -------
+        res_only=False（默认）→ (X_res, y_res) 完整重采样数据集；
+        res_only=True         → X_syn 仅合成样本特征矩阵。
         """
         if self.random_state is not None:
             random.seed(self.random_state)
@@ -303,6 +312,9 @@ class MTGPSMOTESampler(BaseEstimator):
         n_synthetic = len(X_maj) - len(X_min)
 
         if n_synthetic <= 0:
+            # 已平衡，无需生成合成样本
+            if self.res_only:
+                return np.empty((0, X.shape[1]))
             return X.copy(), y.copy()
 
         pair_list = self._build_pairs(X_min, X_maj, n_synthetic)
@@ -316,4 +328,6 @@ class MTGPSMOTESampler(BaseEstimator):
         X_syn = np.array(synthetic)
         y_syn = np.full(len(synthetic), minority_cls)
 
+        if self.res_only:
+            return X_syn
         return np.vstack([X, X_syn]), np.concatenate([y, y_syn])

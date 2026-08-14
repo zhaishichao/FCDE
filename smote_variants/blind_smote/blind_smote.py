@@ -228,13 +228,18 @@ class BlindSMOTE(BaseEstimator, TransformerMixin):
         随机种子，保证可复现。
     verbose : bool, default=False
         是否打印进化日志。
+    res_only : bool, default=False
+        是否额外返回合成样本列表（由原 blind_smote_res_only 模块合并而来）。
+        False（默认）→ fit_resample 返回 (X_res, y_res)；
+        True         → fit_resample 返回 (X_res, y_res, synth_rows)，
+                        其中 synth_rows 为合成样本特征向量的列表。
     """
 
     def __init__(
         self,
         k: int = 5,
         N_min: int = 1,
-        N_max: int = 10,
+        N_max: int = 5,
         pop_size: int = 100,
         n_gen: int = 10000,
         cx_prob: float = 0.8,
@@ -246,6 +251,7 @@ class BlindSMOTE(BaseEstimator, TransformerMixin):
         time_limit: Optional[float] = None,
         random_state=None,
         verbose: bool = False,
+        res_only: bool = False,
     ):
         self.k = k
         self.N_min = N_min
@@ -261,6 +267,7 @@ class BlindSMOTE(BaseEstimator, TransformerMixin):
         self.time_limit = time_limit
         self.random_state = random_state
         self.verbose = verbose
+        self.res_only = res_only
 
     # ── 内部工具 ──────────────────────────────────────────────────────────
 
@@ -294,7 +301,7 @@ class BlindSMOTE(BaseEstimator, TransformerMixin):
 
     # ── Algorithm 1：从个体解码出增强训练集 ──────────────────────────────
 
-    def _decode(self, ind: Individual) -> Tuple[np.ndarray, np.ndarray]:
+    def _decode(self, ind: Individual) -> Tuple[np.ndarray, np.ndarray, list]:
         """
         Algorithm 1: BlindSMOTE procedure to obtain dataset T^A from individual i.
 
@@ -348,7 +355,7 @@ class BlindSMOTE(BaseEstimator, TransformerMixin):
             X_parts.append(np.array(synth_rows, dtype=np.float32))
             y_parts.append(np.full(len(synth_rows), self.min_class_, dtype=int))
 
-        return np.vstack(X_parts), np.concatenate(y_parts)
+        return np.vstack(X_parts), np.concatenate(y_parts), synth_rows
 
     # ── 适应度评估（论文 §3，公式 3-8）──────────────────────────────────
 
@@ -358,7 +365,7 @@ class BlindSMOTE(BaseEstimator, TransformerMixin):
         2. 用 X_aug 训练 wrapper 分类器
         3. 在原始训练集 (X_, y_) 上预测，计算 (G-mean + F1) / 2
         """
-        X_aug, y_aug = self._decode(ind)
+        X_aug, y_aug, _ = self._decode(ind)
         if len(np.unique(y_aug)) < 2:
             return 0.0
         clf = deepcopy(self.clf_)
@@ -656,7 +663,7 @@ class BlindSMOTE(BaseEstimator, TransformerMixin):
         self,
         X: np.ndarray,
         y: np.ndarray,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ):
         """
         对 (X, y) 执行 BlindSMOTE 进化重采样（二分类）。
 
@@ -664,6 +671,7 @@ class BlindSMOTE(BaseEstimator, TransformerMixin):
         -------
         X_res : ndarray — 重采样后的特征矩阵
         y_res : ndarray — 重采样后的标签向量
+        synth_rows : list — 合成样本特征向量列表（仅 res_only=True 时返回）
         """
         X = np.asarray(X, dtype=np.float32)
         y = np.asarray(y, dtype=int)
@@ -694,7 +702,7 @@ class BlindSMOTE(BaseEstimator, TransformerMixin):
         n_min = self.X_min_.shape[0]
         if n_min <= 1:
             warnings.warn("少数类样本数 ≤ 1，直接返回原始数据。")
-            return X, y
+            return (X, y, []) if self.res_only else (X, y)
 
         # 构建 k 近邻（固定超参数）
         self.k_ = min(self.k, n_min - 1)
@@ -713,7 +721,7 @@ class BlindSMOTE(BaseEstimator, TransformerMixin):
         self.best_individual_ = best_ind
 
         # 解码最优个体 → 增强训练集
-        X_res, y_res = self._decode(best_ind)
+        X_res, y_res, synth_rows = self._decode(best_ind)
 
         if self.verbose:
             print(f"\n[BlindSMOTE] 完成。"
@@ -721,7 +729,7 @@ class BlindSMOTE(BaseEstimator, TransformerMixin):
                   f"少数类={np.sum(y_res == self.min_class_)}")
             print(f"             最优适应度: {self.hof_.best_fitness:.4f}")
 
-        return X_res, y_res
+        return (X_res, y_res, synth_rows) if self.res_only else (X_res, y_res)
 
     def print_logbook(self, last_n: int = 20):
         """打印进化历史（最后 last_n 代）"""
