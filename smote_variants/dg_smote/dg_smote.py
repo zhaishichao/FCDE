@@ -146,9 +146,11 @@ class DGSMOTE(BaseEstimator):
         pset.addPrimitive(operator.mul, 2)
         pset.addPrimitive(protectedDiv, 2)
 
-        # 创建多目标适应度和 GP 个体
-        creator.create("FitnessMulti", base.Fitness, weights=(1.0, 1.0))
-        creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMulti)
+        # 创建多目标适应度和 GP 个体（只注册一次，避免重复创建告警）
+        if not hasattr(creator, "FitnessMulti"):
+            creator.create("FitnessMulti", base.Fitness, weights=(1.0, 1.0))
+        if not hasattr(creator, "Individual"):
+            creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMulti)
 
         toolbox = base.Toolbox()
         toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=5)

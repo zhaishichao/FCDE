@@ -48,7 +48,8 @@ def tsne_visualization_binary(X, y, save_path, filename,
     tsne = TSNE(n_components=2,
                 perplexity=perplexity,
                 random_state=random_state,
-                n_iter=1000)
+                max_iter=1000,
+                n_jobs=1)
 
     X_tsne = tsne.fit_transform(X)
 

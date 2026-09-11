@@ -1,4 +1,5 @@
 import operator
+from functools import partial
 
 import numpy as np
 from deap import gp, creator, base, tools
@@ -20,12 +21,14 @@ def init_toolbox(arity):
     pset.addPrimitive(operator.sub, 2)
     pset.addPrimitive(operator.mul, 2)
     pset.addPrimitive(protectedDiv, 2)
-    pset.addEphemeralConstant("rand101", lambda: np.random.uniform(0, 1))
+    pset.addEphemeralConstant("rand101", partial(np.random.uniform, 0, 1))
 
-    # 创建适应度和GP个体
-    creator.create("FitnessMulti", base.Fitness, weights=(1.0, 1.0))
-    creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMulti, distance_minority_min=None,
-                   cosine_angle=None, center_distance_excess=None)
+    # 创建适应度和GP个体（只注册一次，避免重复创建告警）
+    if not hasattr(creator, "FitnessMulti"):
+        creator.create("FitnessMulti", base.Fitness, weights=(1.0, 1.0))
+    if not hasattr(creator, "Individual"):
+        creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMulti,
+                       distance_minority_min=None, cosine_angle=None, center_distance_excess=None)
 
     # 初始化toolbox
     toolbox = base.Toolbox()
