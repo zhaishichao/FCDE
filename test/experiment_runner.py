@@ -13,6 +13,8 @@ from data_preprocess import data_loader, data_preprocess
 from config import file_path, columns_dataset, columns_datasets, scoring
 from smote_variants.blind_smote import BlindSMOTE
 from smote_variants.mtgp_smote.mtgp_smote import MTGPSMOTESampler
+from smote_variants.dg_smote import DGSMOTE
+from smote_variants.gp_smote import GPSMOTE
 
 warnings.filterwarnings("ignore")
 
@@ -34,32 +36,69 @@ def create_clf(i, clf_type):
     raise ValueError(f"Unknown classifier type: {clf_type}")
 
 
-def create_sampler(i, sampler_type, clf_type=None):
-    """根据类型字符串创建SMOTE采样器。
+def create_sampler(i, sampler_type, clf_type=None, sampler_params=None):
+    """根据类型字符串创建 SMOTE 采样器。
 
     Parameters
     ----------
-    i : int, 迭代序号
-    sampler_type : {'bs', 'mtgp'}
-        bs: BlindSMOTE, mtgp: MTGPSMOTESampler
+    i : int, 迭代序号（随机种子使用 42 + i）
+    sampler_type : {'bs', 'mtgp', 'dg', 'gp'}
+        bs: BlindSMOTE, mtgp: MTGPSMOTESampler, dg: DGSMOTE, gp: GPSMOTE
     clf_type : str or None
         分类器类型，仅 BlindSMOTE 需要（其内部使用分类器评估适应度）。
+    sampler_params : dict or None
+        采样器超参数（键为对应采样器 __init__ 的参数名）。
+        未提供的键使用下方默认值。
+        - bs   : pop_size=30, n_gen=30
+        - mtgp : pop_size=30, n_generations=100, cx_rate=0.7,
+                 mut_rate=0.3, tournament_k=3, max_depth=4
+        - dg   : pop_size=30, cx_prob=0.8, mut_prob=0.2, n_gen=100, verbose=False
+        - gp   : pop_size=30, cx_prob=0.8, mut_prob=0.2, n_gen=100,
+                 verbose=False, remove_constraints=()
     """
+    p = sampler_params or {}
+
     if sampler_type == 'bs':
         return BlindSMOTE(
-            pop_size=30, n_gen=30,
+            pop_size=p.get('pop_size', 30),
+            n_gen=p.get('n_gen', 30),
             classifier=create_clf(i, clf_type),
             random_state=42 + i)
-    elif sampler_type == 'mtgp':
+
+    if sampler_type == 'mtgp':
         return MTGPSMOTESampler(
-            pop_size=30, n_generations=100,
-            cx_rate=0.7, mut_rate=0.3, tournament_k=3, max_depth=4,
+            pop_size=p.get('pop_size', 30),
+            n_generations=p.get('n_generations', 100),
+            cx_rate=p.get('cx_rate', 0.7),
+            mut_rate=p.get('mut_rate', 0.3),
+            tournament_k=p.get('tournament_k', 3),
+            max_depth=p.get('max_depth', 4),
             random_state=42 + i)
+
+    if sampler_type == 'dg':
+        return DGSMOTE(
+            pop_size=p.get('pop_size', 30),
+            cx_prob=p.get('cx_prob', 0.8),
+            mut_prob=p.get('mut_prob', 0.2),
+            n_gen=p.get('n_gen', 100),
+            verbose=p.get('verbose', False),
+            random_state=42 + i)
+
+    if sampler_type == 'gp':
+        return GPSMOTE(
+            pop_size=p.get('pop_size', 30),
+            cx_prob=p.get('cx_prob', 0.8),
+            mut_prob=p.get('mut_prob', 0.2),
+            n_gen=p.get('n_gen', 100),
+            verbose=p.get('verbose', False),
+            remove_constraints=p.get('remove_constraints', ()),
+            random_state=42 + i)
+
     raise ValueError(f"Unknown sampler type: {sampler_type}")
 
 
-def run_experiment(clf_type, sampler_type, dataset_names, n_runs):
-    """运行SMOTE过采样实验，遍历数据集并评估分类性能。
+def run_experiment(clf_type, sampler_type, dataset_names, n_runs, sampler_params=None):
+    """运行 SMOTE 过采样实验，遍历数据集并评估分类性能。
 
     save_path、save_subfolder、mean_filename 由 clf_type 和 sampler_type
     自动推导，无需手动指定。
@@ -67,9 +106,10 @@ def run_experiment(clf_type, sampler_type, dataset_names, n_runs):
     Parameters
     ----------
     clf_type : {'knn', 'dt', 'svm'}, 分类器类型
-    sampler_type : {'bs', 'mtgp'}, 采样器类型
+    sampler_type : {'bs', 'mtgp', 'dg', 'gp'}, 采样器类型
     dataset_names : list, 数据集名称列表
     n_runs : int, 重复运行次数
+    sampler_params : dict or None, 采样器超参数（见 create_sampler）
     """
     save_path = f'../results/{sampler_type}/{clf_type}/'
     mean_filename = f'mean_{sampler_type}.csv'
@@ -91,7 +131,7 @@ def run_experiment(clf_type, sampler_type, dataset_names, n_runs):
             X_train, X_test, y_train, y_test = data_preprocess(
                 X, y, standard=True, random_state=42 + i)
 
-            sampler = create_sampler(i, sampler_type, clf_type)
+            sampler = create_sampler(i, sampler_type, clf_type, sampler_params)
             X_res, y_res = sampler.fit_resample(X_train, y_train)
             X_shuffled, y_shuffled = shuffle(X_res, y_res, random_state=42 + i)
 
