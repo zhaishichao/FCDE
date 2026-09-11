@@ -13,7 +13,7 @@ import warnings
 import pandas as pd
 
 from data_preprocess import data_loader, data_preprocess
-from config import datasetnames_final_1
+from config import datasetnames
 
 warnings.filterwarnings("ignore")
 
@@ -45,7 +45,7 @@ def benchmark(algorithm_name, run_once, save_dir, num_run=3,
     standard : bool
         是否对特征做标准化。
     """
-    datasets = datasets if datasets is not None else datasetnames_final_1
+    datasets = datasets if datasets is not None else datasetnames
     save_path = os.path.join(RESULTS_DIR, save_dir)
     os.makedirs(save_path, exist_ok=True)
 

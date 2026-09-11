@@ -12,8 +12,8 @@ evol_parameter = EvolutionaryParameterConfig(POPSIZE, CXPB, MUTPB, NGEN, verbose
 
 
 def run_once(X_train, y_train, seed):
-    dg = DGSMOTE(X=X_train, y=y_train, evol_parameter=evol_parameter)
-    dg.fit_resample()
+    dg = DGSMOTE(pop_size=evol_parameter.POPSIZE, cx_prob=evol_parameter.CXPB, mut_prob=evol_parameter.MUTPB, n_gen=evol_parameter.NGEN, verbose=evol_parameter.verbose)
+    dg.fit_resample(X_train, y_train)
 
 
 if __name__ == '__main__':
